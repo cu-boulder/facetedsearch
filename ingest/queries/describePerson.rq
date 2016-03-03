@@ -13,7 +13,7 @@ PREFIX bibo: <http://purl.org/ontology/bibo/>
 PREFIX obo: <http://purl.obolibrary.org/obo/>
 PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 
-DESCRIBE ?person ?dcoid ?mostSpecificType ?orgrole ?org ?commrole ?dco_community ?teamrole ?team ?main_image ?thumb_image ?thumbnail ?research_area ?vcard ?email ?name ?homeCountry
+DESCRIBE ?person ?dcoid ?mostSpecificType ?org ?dco_community ?portal_group ?main_image ?thumb_image ?thumbnail ?research_area ?vcard ?email ?name ?position ?affiliation ?homeCountry
 WHERE {
   ?person a foaf:Person .
   ?person vitro:mostSpecificType ?mostSpecificType .
@@ -22,30 +22,16 @@ WHERE {
     OPTIONAL { ?vcard vcard:hasEmail ?email }
     OPTIONAL { ?vcard vcard:hasName ?name }
   }
-  OPTIONAL { ?person vivo:relatedBy ?orgrole .
-             ?orgrole a vivo:Position .
-             OPTIONAL { ?orgrole vivo:dateTimeInterval ?interval .
-                        ?interval vivo:end ?end . }
-             FILTER( ! BOUND(?end))
-             ?orgrole vivo:relates ?org .
-             ?org a foaf:Organization }
-  OPTIONAL { ?person obo:RO_0000053 ?commrole .
-             ?commrole a vivo:MemberRole .
-             OPTIONAL { ?commrole vivo:dateTimeInterval ?interval .
-                        ?interval vivo:end ?end . }
-             FILTER( ! BOUND(?end))
-             ?commrole vivo:roleContributesTo ?dco_community .
-             ?dco_community a dco:ResearchCommunity . }
-  OPTIONAL { ?person obo:RO_0000053 ?teamrole .
-             ?teamrole a vivo:MemberRole .
-             OPTIONAL { ?teamrole vivo:dateTimeInterval ?interval .
-                                  ?interval vivo:end ?end .}
-             FILTER( ! BOUND(?end))
-             ?teamrole vivo:roleContributesTo ?team .
-             ?team a dco:Team . }
+  OPTIONAL { ?person vivo:relatedBy ?position .
+             ?position a vivo:Position .
+             ?position vivo:relates ?affiliation .
+             ?affiliation a foaf:Organization }
+  OPTIONAL { ?person dco:inOrganization ?org }
+  OPTIONAL { ?person dco:associatedDCOCommunity ?dco_community }
+  OPTIONAL { ?person dco:associatedDCOPortalGroup ?portal_group }
   OPTIONAL { ?person vitro-pub:mainImage ?main_image .
              ?main_image vitro-pub:thumbnailImage ?thumb_image .
              ?thumb_image vitro-pub:downloadLocation ?thumbnail }
   OPTIONAL { ?person vivo:hasResearchArea ?research_area }
-  OPTIONAL { ?person dco:homeCountry ?homeCountry }
+  OPTIONAL { ?person vivo:geographicFocus ?homeCountry }
 }

@@ -6,17 +6,20 @@
 
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.1/handlebars.min.js"></script>
 
-    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
-    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/vendor/bootstrap/css/bootstrap.min.css">
-    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/bootstrap/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
-    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+    <script type="text/javascript" src="/themes/cu-boulder/facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <link rel="stylesheet" href="/themes/cu-boulder/facetview2/vendor/bootstrap/css/bootstrap.min.css">
+    <script type="text/javascript" src="/themes/cu-boulder/facetview2/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="/themes/cu-boulder/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
+    <script type="text/javascript" src="/themes/cu-boulder/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.js"></script>
 
-    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/es.js"></script>
-    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/bootstrap2.facetview.theme.js"></script>
-    <script type="text/javascript" src="/vivo/themes/dco/js/facetview2/jquery.facetview2.js"></script>
-    <link rel="stylesheet" href="/vivo/themes/dco/js/facetview2/css/facetview.css">
-    <link rel="stylesheet" href="/vivo/themes/dco/css/browsers.css">
+    <script type="text/javascript" src="/themes/cu-boulder/facetview2/es.js"></script>
+    <script type="text/javascript" src="/themes/cu-boulder/facetview2/bootstrap2.facetview.theme.js"></script>
+    <script type="text/javascript" src="/themes/cu-boulder/facetview2/jquery.facetview2.js"></script>
+
+    <link rel="stylesheet" href="/themes/cu-boulder/facetview2/css/facetview.css">
+    <link rel="stylesheet" href="/themes/cu-boulder/browsers.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" />
 
     <script id="person-template" type="text/x-handlebars-template">
         <tr>
@@ -26,31 +29,33 @@
                     <div class="caption">
                         <h5><small>
                             {{#if dcoId}}
-                            <a class="{{#if isDcoMember}}dco-logo{{/if}}" href="{{dcoidURL dcoId}}" target="_blank">{{name}}</a>
+                            <a class="{{#if isDcoMember}}dco-logo{{/if}}" href="{{dcoId}}" target="_blank">{{name}}</a>
                             {{else}}
                             <a class="{{#if isDcoMember}}dco-logo{{/if}}" href="{{uri}}" target="_blank">{{name}}</a>
                             {{/if}}
                         </small></h5>
                     </div>
                 </div>
-                <div class="person-info span7">
+                <div class="person-info">
                     {{#if (showMostSpecificType mostSpecificType)}}<div><em class="small">{{mostSpecificType}}</em></div>{{/if}}
                     {{#if email}}<div><strong>email: </strong><a href="mailto:{{email}}">{{email}}</a></div>{{/if}}
                     {{#if network_id}}<div><strong>network ID: </strong><small>{{network_id}}</small></div>{{/if}}
 
                     {{#if dcoCommunities}}
-                    <div><strong>Communities:</strong></div>
-                    <div>{{#list dcoCommunities}}{{commrole}} - <a href="{{community.uri}}" target="_blank">{{community.name}}</a>{{/list}}</div>
+                    <div><strong>Communities:</strong> {{#expand dcoCommunities}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
-                    {{#if teams}}
-                    <div><strong>Teams:</strong></div>
-                    <div>{{#list teams}}{{teamrole}} - <a href="{{team.uri}}" target="_blank">{{team.name}}</a>{{/list}}</div>
+                    {{#if portalGroups}}
+                    <div><strong>Portal Groups:</strong> {{#expand portalGroups}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
-                    {{#if organizations}}
-                    <div><strong>Organizations:</strong></div>
-                    <div>{{#list organizations}}{{orgrole}} - <a href="{{organization.uri}}" target="_blank">{{organization.name}}</a>{{/list}}</div>
+                    {{#if organization}}
+                    <div><strong>Organizations:</strong> {{#expand organization}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    {{/if}}
+
+                    {{#if affiliations}}
+                    <div><strong>Affiliations:</strong></div>
+                    {{#list affiliations}}{{position}} - <a href="{{org.uri}}">{{org.name}}</a>{{/list}}
                     {{/if}}
 
                     {{#if researchArea}}
@@ -65,7 +70,7 @@
 
                     <div>
                         {{#if orcid}}<a href="{{orcidURL orcid}}" target="_blank"><img class="badge" src="{{orcidBadgeURL orcid}}"/></a>{{/if}}
-                        {{#if dcoId}}<a href="{{dcoidURL dcoId}}" target="_blank"><img class="badge" src="{{dcoIdBadgeURL dcoId}}"/></a>{{/if}}
+                        {{#if dcoId}}<a href="{{dcoId}}" target="_blank"><img class="badge" src="{{dcoIdBadgeURL dcoId}}"/></a>{{/if}}
                     </div>
 
                 </div>
@@ -79,17 +84,13 @@
             return "http://orcid.org/"+orcid;
         });
 
-        Handlebars.registerHelper('dcoidURL', function(dcoid) {
-            return "https://dx.deepcarbon.net/"+dcoid;
-        });
-
         Handlebars.registerHelper('orcidBadgeURL', function(orcid) {
             var escapedORCID = encodeURIComponent(orcid);
             return "//dcotest.tw.rpi.edu/badges/badge?title=ORCID&text="+escapedORCID+"&color=a6ce39";
         });
 
         Handlebars.registerHelper('dcoIdBadgeURL', function(dcoId) {
-            var escapedDCOID = encodeURIComponent(dcoId);
+            var escapedDCOID = encodeURIComponent(dcoId.substring(25));
             return "//dcotest.tw.rpi.edu/badges/badge?title=profile&text="+escapedDCOID+"&color=D14719";
         });
 
@@ -123,10 +124,9 @@
     </script>
 
     <script type="text/javascript">
-
         jQuery(document).ready(function($) {
             $('.facet-view-simple').facetview({
-                search_url: '//data.deepcarbon.net/es/dco/person/_search',
+                search_url: 'https://prometheus-dev.int.colorado.edu/es/fis/person/_search',
                 page_size: 10,
                 sort: [
                     {"_score" : {"order" : "desc"}},
@@ -139,9 +139,9 @@
                 default_facet_order: "count",
                 default_facet_size: 15,
                 facets: [
-                    {'field': 'dcoCommunities.community.name.exact', 'display': 'Community'},
-                    {'field': 'teams.team.name.exact', 'display': 'Team'},
-                    {'field': 'organizations.organization.name.exact', 'display': 'Organization'},
+                    //{'field': 'dcoCommunities.community.name.exact', 'display': 'Community'},
+                    //{'field': 'teams.team.name.exact', 'display': 'Team'},
+                    {'field': 'organization.name.exact', 'display': 'Organization'},
                     {'field': 'researchArea.name.exact', 'display': 'Research Area'},
                     {'field': 'homeCountry.name.exact', 'display': 'Country'},
                     {'field': 'isDcoMember', 'display': 'Show only DCO-members'}
@@ -158,45 +158,38 @@
                 show_filter_logic: true,
                 post_init_callback: function(options, context) {
                     // on initial load activate the isDcoMember filter
-                    options.active_filters = {'isDcoMember': ['T']};
-
+                    //options.active_filters = {'isDcoMember': ['T']};
                     // add the 'dco publication' checkbox to the UI
-                    $(".facetview_search_options_container")
+                    /*$(".facetview_search_options_container")
                             .after("<input id='is-dco-member-checkbox' type='checkbox'>&nbsp;Show only DCO members</input>&nbsp;<img style='vertical-align: middle' src='//deepcarbon.net/sites/default/files/images/dco-icon-footer_0.png' height='15' width='15'>");
-
                     // set checkbox to control isDcoMember filter on selection/deselection
                     $("#is-dco-member-checkbox")
                             .change(function() {
                                 if(this.checked) {
                                     $("a.facetview_filterchoice[data-field='isDcoMember'][data-value='T']").click();
                                 } else {
-
                                     $("a.facetview_clear[data-field='isDcoMember'][data-value='T']").click();
                                 }
-                            });
+                            });*/
                 },
                 post_render_callback: function(options, context) {
-
                     //  add DCO logo before any element with class 'dco-logo'
                     $(".dco-logo").before("<img style='vertical-align: middle' src='//deepcarbon.net/sites/default/files/images/dco-icon-footer_0.png' height='15' width='15'>&nbsp;");
-
-                    if(options.active_filters["isDcoMember"] != null) {
+                    /*if(options.active_filters["isDcoMember"] != null) {
                         // if the isDcoMember filter is active set ensure the checkbox is checked
-                        $("#is-dco-member-checkbox").attr("checked", true);
+                        $("#is-dco-member-checkbox").attr("checked", false);
                     } else if (!$("a.facetview_filterchoice[data-field='isDcoMember'][data-value='T']").length) {
                         // if the isDcoMember filter is not active and is not a valid option
                         // (there are no remaining DCO publications in the result set) then disable the checkbox
                         $("#is-dco-member-checkbox").attr("disabled", true);
                     } else {
                         // if the isDcoMember filter is not active is a valid option ensure it is enabled
-                        $("#is-dco-member-checkbox").attr("disabled", false);
-                    }
+                        $("#is-dco-member-checkbox").attr("disabled", true);
+                    }*/
                 }
             });
         });
-
     </script>
-
 
     <style type="text/css">
 
@@ -229,6 +222,7 @@
             vertical-align: top;
             clear: left;
             margin-left: 0 !important;
+            max-width: 80%;
         }
 
         .thumbnail {

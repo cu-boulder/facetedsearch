@@ -76,6 +76,8 @@ VITRO = Namespace("http://vitro.mannlib.cornell.edu/ns/vitro/0.7#")
 VITRO_PUB = Namespace("http://vitro.mannlib.cornell.edu/ns/vitro/public#")
 OBO = Namespace("http://purl.obolibrary.org/obo/")
 DCO = Namespace("http://info.deepcarbon.net/schema#")
+CUB = Namespace("http://vivo.colorado.edu/individual/")
+FIS_LOCAL = Namespace("http://vivo.colorado.edu/ontology/vivo-fis#")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
 
@@ -88,14 +90,15 @@ has_label = lambda o: True if o.label() else False
 
 
 def get_metadata(id):
-    return {"index": {"_index": "dco", "_type": "person", "_id": id}}
+    return {"index": {"_index": "fis", "_type": "person", "_id": id}}
 
 
-def get_id(dco_id):
-    return dco_id[dco_id.rfind('/') + 1:]
-
+def get_id(fis_id):
+    #fis_id = fis_id[fis_id.rfind('/') + 1:]
+    return fis_id
 
 def select(endpoint, query):
+    endpoint = endpoint
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)
@@ -129,11 +132,9 @@ def describe_person(endpoint, person):
     return describe(endpoint, q)
 
 
-def get_dcoid(person):
+def get_fisid(person):
     return Maybe.of(person).stream() \
-        .flatmap(lambda p: p.objects(DCO.hasDcoId)) \
-        .orElse(lambda: person.graph.subjects(DCO.dcoIdFor, person)) \
-        .map(lambda i: i.label()) \
+        .flatmap(lambda p: p.objects(FIS_LOCAL.fisId)) \
         .one().value
 
 
@@ -181,7 +182,6 @@ def get_email(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
         .flatmap(lambda v: v.objects(VCARD.hasEmail)) \
-        .filter(lambda f: has_type(f, VCARD.Work)) \
         .flatmap(lambda e: e.objects(VCARD.email)) \
         .filter(non_empty_str) \
         .one().value
@@ -195,73 +195,69 @@ def get_research_areas(person):
 
 
 def get_organizations(person):
-    orgs = []
 
-    orgroles = Maybe.of(person).stream() \
+    organizations = []
+
+    positions = Maybe.of(person).stream() \
         .flatmap(lambda per: per.objects(VIVO.relatedBy)) \
         .filter(lambda related: has_type(related, VIVO.Position)).list()
 
-    for orgrole in orgroles:
-        org = Maybe.of(orgrole).stream() \
+    for position in positions:
+        organization = Maybe.of(position).stream() \
+            .flatmap(lambda r: r.objects(VIVO.relates)) \
+            .filter(lambda o: has_type(o, FOAF.Organization)) \
+            .filter(has_label) \
+            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}).one().value
+
+        if organization:
+            organizations.append(organization)
+    return organizations
+    '''return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(DCO.inOrganization)) \
+        .filter(has_label) \
+        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
+    '''
+
+def get_portal_groups(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(DCO.associatedDCOPortalGroup)) \
+        .filter(has_label) \
+        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
+
+
+def get_dco_communities(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(DCO.associatedDCOCommunity)) \
+        .filter(has_label) \
+        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
+
+
+def get_home_country(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(VIVO.geographicFocus)) \
+        .filter(has_label) \
+        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).one().value
+
+
+def get_affiliations(person):
+    affiliations = []
+
+    positions = Maybe.of(person).stream() \
+        .flatmap(lambda per: per.objects(VIVO.relatedBy)) \
+        .filter(lambda related: has_type(related, VIVO.Position)).list()
+
+    for position in positions:
+        organization = Maybe.of(position).stream() \
             .flatmap(lambda r: r.objects(VIVO.relates)) \
             .filter(lambda o: has_type(o, FOAF.Organization)) \
             .filter(has_label) \
             .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}) \
             .one().value
 
-        if org:
-            orgs.append({"orgrole": str(orgrole.label()), "organization": org})
+        if organization:
+            affiliations.append({"position": str(position.label()), "org": organization})
 
-    return orgs
-
-
-def get_teams(person):
-    teams = []
-
-    teamroles = Maybe.of(person).stream() \
-        .flatmap(lambda per: per.objects(OBO.RO_0000053)) \
-        .filter(lambda related: has_type(related, VIVO.MemberRole)).list()
-
-    for teamrole in teamroles:
-        team = Maybe.of(teamrole).stream() \
-            .flatmap(lambda r: r.objects(VIVO.roleContributesTo)) \
-            .filter(lambda o: has_type(o, DCO.Team)) \
-            .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}) \
-            .one().value
-
-        if team:
-            teams.append({"teamrole": str(teamrole.label()), "team": team})
-
-    return teams
-
-
-def get_dco_communities(person):
-    comms = []
-
-    commroles = Maybe.of(person).stream() \
-        .flatmap(lambda p: p.objects(OBO.RO_0000053)) \
-        .filter(lambda related: has_type(related, VIVO.MemberRole)).list()
-
-    for commrole in commroles:
-        comm = Maybe.of(commrole).stream() \
-            .flatmap(lambda r: r.objects(VIVO.roleContributesTo)) \
-            .filter(lambda o: has_type(o, DCO.ResearchCommunity)) \
-            .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}) \
-            .one().value
-
-        if comm:
-            comms.append({"commrole": str(commrole.label()), "community": comm})
-
-    return comms
-
-
-def get_home_country(person):
-    return Maybe.of(person).stream() \
-        .flatmap(lambda p: p.objects(DCO.homeCountry)) \
-        .filter(has_label) \
-        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).one().value
+    return affiliations
 
 
 def get_thumbnail(person):
@@ -284,18 +280,12 @@ def create_person_doc(person, endpoint):
         print("missing name:", person)
         return {}
 
-    dcoid = get_dcoid(per)
-    doc = {"uri": person, "name": name, "dcoId": dcoid}
+    fis = get_fisid(per)
+    doc = {"uri": person, "name": name, "fisId": fis}
 
     orcid = get_orcid(per)
     if orcid:
         doc.update({"orcid": orcid})
-
-    network_id = get_network_id(per)
-    if network_id:
-        doc.update({"network_id": network_id, "isDcoMember": True})
-    else:
-        doc.update({"isDcoMember": False})
 
     most_specific_type = get_most_specific_type(per)
     if most_specific_type:
@@ -323,27 +313,29 @@ def create_person_doc(person, endpoint):
 
     organizations = get_organizations(per)
     if organizations:
-        doc.update({"organizations": organizations})
+        doc.update({"organization": organizations})
 
-    teams = get_teams(per)
-    if teams:
-        doc.update({"teams": teams})
-
-    dco_communities = get_dco_communities(per)
-    if dco_communities:
-        doc.update({"dcoCommunities": dco_communities})
+    portal_groups = get_portal_groups(per)
+    if portal_groups:
+        doc.update({"portalGroups": portal_groups})
 
     thumbnail = get_thumbnail(per)
     if thumbnail:
         doc.update({"thumbnail": thumbnail})
 
+    affiliations = get_affiliations(per)
+    if affiliations:
+        doc.update({"affiliations": affiliations})
+
     return doc
 
 
-def process_person(person, endpoint):
+def process_person(person, endpoint='http://prometheus-dev.int.colorado.edu:2020/ds/sparql'):
     per = create_person_doc(person=person, endpoint=endpoint)
-    es_id = per["dcoId"] if "dcoId" in per and per["dcoId"] is not None else per["uri"]
+    print "person doc created"
+    es_id = per["fisId"] if "fisId" in per and per["fisId"] is not None else per["uri"]
     es_id = get_id(es_id)
+    print "id: %s" % es_id
     return [json.dumps(get_metadata(es_id)), json.dumps(per)]
 
 
@@ -351,7 +343,7 @@ def publish(bulk, endpoint, rebuild, mapping):
     # if configured to rebuild_index
     # Delete and then re-create to publication index (via PUT request)
 
-    index_url = endpoint + "/dco"
+    index_url = endpoint+"fis"
 
     if rebuild:
         requests.delete(index_url)
@@ -362,43 +354,48 @@ def publish(bulk, endpoint, rebuild, mapping):
 
     # push current publication document mapping
 
-    mapping_url = endpoint + "/dco/person/_mapping"
+    mapping_url = endpoint + "fis/person/_mapping"
+    print "opening mapping"
     with open(mapping) as mapping_file:
         r = requests.put(mapping_url, data=mapping_file)
+        print "putting map file"
         if r.status_code != requests.codes.ok:
-
+            print r.status_code
             # new mapping may be incompatible with previous
             # delete current mapping and re-push
 
             requests.delete(mapping_url)
+            print "failed. deleting..."
             r = requests.put(mapping_url, data=mapping_file)
+            print "re-putting map file"
             if r.status_code != requests.codes.ok:
                 print(r.url, r.status_code)
                 r.raise_for_status()
 
+    print "mapped"
     # bulk import new publication documents
-    bulk_import_url = endpoint + "/_bulk"
+    bulk_import_url = endpoint + "_bulk"
     r = requests.post(bulk_import_url, data=bulk)
     if r.status_code != requests.codes.ok:
         print(r.url, r.status_code)
         r.raise_for_status()
-
+    print "Bulk Status: %s" % r.status_code
 
 def generate(threads, sparql):
     pool = multiprocessing.Pool(threads)
-    params = [(person, sparql) for person in get_people(endpoint=sparql)]
-    return list(chain.from_iterable(pool.starmap(process_person, params)))
+    params = [person for person in get_people(endpoint=sparql)]
+    return list(chain.from_iterable(pool.map(process_person, params)))
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
-    parser.add_argument('--es', default="http://data.deepcarbon.net/es", help="elasticsearch service URL")
-    parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
+    parser.add_argument('--es', default="https://prometheus-dev.int.colorado.edu/es/", help="elasticsearch service URL")
+    parser.add_argument('--publish', default=True, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/person.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://deepcarbon.tw.rpi.edu:3030/VIVO/query', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://prometheus-dev.int.colorado.edu:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()
@@ -406,11 +403,12 @@ if __name__ == "__main__":
     # generate bulk import document for publications
     records = generate(threads=int(args.threads), sparql=args.sparql)
 
+    print "generated records"
     # save generated bulk import file so it can be backed up or reviewed if there are publish errors
     with open(args.out, "w") as bulk_file:
-        bulk_file.write('\n'.join(records)+'\n')
+        bulk_file.write('\n'.join(records))
 
     # publish the results to elasticsearch if "--publish" was specified on the command line
     if args.publish:
-        bulk_str = '\n'.join(records)+'\n'
+        bulk_str = '\n'.join(records)
         publish(bulk=bulk_str, endpoint=args.es, rebuild=args.rebuild, mapping=args.mapping)
