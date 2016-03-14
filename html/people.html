@@ -41,13 +41,6 @@
                     {{#if email}}<div><strong>Email: </strong><a href="mailto:{{email}}">{{email}}</a></div>{{/if}}
                     {{#if orcid}}<div><strong>ORCID ID:</strong> <a href="{{orcidURL orcid}}" target="_blank">{{orcid}}</a></div>{{/if}}
 
-                    {{#if dcoCommunities}}
-                    <div><strong>Communities:</strong> {{#expand dcoCommunities}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
-                    {{/if}}
-
-                    {{#if portalGroups}}
-                    <div><strong>Portal Groups:</strong> {{#expand portalGroups}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
-                    {{/if}}
 
                     {{#if organization}}
                     <div><strong>Organizations:</strong> {{#expand organization}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
@@ -122,12 +115,9 @@
                 default_facet_order: "count",
                 default_facet_size: 15,
                 facets: [
-                    //{'field': 'dcoCommunities.community.name.exact', 'display': 'Community'},
-                    //{'field': 'teams.team.name.exact', 'display': 'Team'},
                     {'field': 'organization.name.exact', 'display': 'Organization'},
                     {'field': 'researchArea.name.exact', 'display': 'Research Area'},
                     {'field': 'homeCountry.name.exact', 'display': 'International Activities'},
-                    {'field': 'isDcoMember', 'display': 'Show only DCO-members'}
                 ],
                 search_sortby: [
                     {'display':'Name','field':'name.exact'}
@@ -138,38 +128,7 @@
                 },
                 selected_filters_in_facet: true,
                 show_filter_field : true,
-                show_filter_logic: true,
-                post_init_callback: function(options, context) {
-                    // on initial load activate the isDcoMember filter
-                    //options.active_filters = {'isDcoMember': ['T']};
-                    // add the 'dco publication' checkbox to the UI
-                    /*$(".facetview_search_options_container")
-                            .after("<input id='is-dco-member-checkbox' type='checkbox'>&nbsp;Show only DCO members</input>&nbsp;<img style='vertical-align: middle' src='//deepcarbon.net/sites/default/files/images/dco-icon-footer_0.png' height='15' width='15'>");
-                    // set checkbox to control isDcoMember filter on selection/deselection
-                    $("#is-dco-member-checkbox")
-                            .change(function() {
-                                if(this.checked) {
-                                    $("a.facetview_filterchoice[data-field='isDcoMember'][data-value='T']").click();
-                                } else {
-                                    $("a.facetview_clear[data-field='isDcoMember'][data-value='T']").click();
-                                }
-                            });*/
-                },
-                post_render_callback: function(options, context) {
-                    //  add DCO logo before any element with class 'dco-logo'
-                    $(".dco-logo").before("<img style='vertical-align: middle' src='//deepcarbon.net/sites/default/files/images/dco-icon-footer_0.png' height='15' width='15'>&nbsp;");
-                    /*if(options.active_filters["isDcoMember"] != null) {
-                        // if the isDcoMember filter is active set ensure the checkbox is checked
-                        $("#is-dco-member-checkbox").attr("checked", false);
-                    } else if (!$("a.facetview_filterchoice[data-field='isDcoMember'][data-value='T']").length) {
-                        // if the isDcoMember filter is not active and is not a valid option
-                        // (there are no remaining DCO publications in the result set) then disable the checkbox
-                        $("#is-dco-member-checkbox").attr("disabled", true);
-                    } else {
-                        // if the isDcoMember filter is not active is a valid option ensure it is enabled
-                        $("#is-dco-member-checkbox").attr("disabled", true);
-                    }*/
-                }
+                show_filter_logic: true
             });
         });
     </script>
