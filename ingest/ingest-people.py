@@ -321,6 +321,7 @@ def create_person_doc(person, endpoint):
 
     thumbnail = get_thumbnail(per)
     if thumbnail:
+        thumbnail = thumbnail.replace("http://", "https://")
         doc.update({"thumbnail": thumbnail})
 
     affiliations = get_affiliations(per)
