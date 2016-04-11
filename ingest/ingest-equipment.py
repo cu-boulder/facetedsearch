@@ -133,9 +133,9 @@ def get_equipid(equipment):
 
 def get_sector_id(equipment):
     return Maybe.of(equipment).stream() \
-        .flatmap(lambda p: p.objects(FIS_LOCAL.hasSectorId)) \
-        .filter(non_empty_str) \
-        .one().value
+        .flatmap(lambda p: p.objects(FIS_LOCAL.hasSector)) \
+        .filter(has_label) \
+        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
 
 def get_research_areas(person):
     return Maybe.of(person).stream() \
