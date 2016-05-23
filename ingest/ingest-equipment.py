@@ -131,6 +131,27 @@ def get_equipid(equipment):
         .flatmap(lambda p: p.objects(EQUIP.equipId)) \
         .one().value
 
+def get_type(equipment):
+    return Maybe.of(equipment).stream() \
+           .flatmap(lambda p: p.objects(RDF.type)) \
+           .filter(has_label) \
+           .map(lambda r: {"name": str(r.label())}).one().value
+
+def get_email(equipment):
+    return Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.email)) \
+        .one().value
+
+def get_lab(equipment):
+    return Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.lab)) \
+        .one().value
+
+def get_url(equipment):
+    return Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.url)) \
+        .one().value
+
 def get_sector_id(equipment):
     return Maybe.of(equipment).stream() \
         .flatmap(lambda p: p.objects(FIS_LOCAL.hasSector)) \
@@ -169,6 +190,18 @@ def create_equipment_doc(equipment, endpoint):
     eqid = get_equipid(eq)
     doc = {"uri": equipment, "name": name, "equipId": eqid}
 
+    email = get_email(eq)
+    if email:
+        doc.update({"email": email})
+
+    lab = get_lab(eq)
+    if lab:
+        doc.update({"lab": lab})
+
+    url = get_url(eq)
+    if url:
+        doc.update({"url": url})
+
     sector_id = get_sector_id(eq)
     if sector_id:
         doc.update({"sector_id": sector_id})
@@ -181,10 +214,14 @@ def create_equipment_doc(equipment, endpoint):
     if organization:
         doc.update({"organization": organization})
 
+    eqtype = get_type(eq)
+    if eqtype:
+        doc.update({"eqtype": eqtype})
+
     return doc
 
 
-def process_equipment(equipment, endpoint='http://prometheus-dev.int.colorado.edu:2020/ds/sparql'):
+def process_equipment(equipment, endpoint='http://prometheus.int.colorado.edu:2020/ds/sparql'):
     eq = create_equipment_doc(equipment=equipment, endpoint=endpoint)
     print "person doc created"
     es_id = eq["equipId"] if "equipId" in eq and eq["equipId"] is not None else eq["uri"]
@@ -211,16 +248,16 @@ def publish(bulk, endpoint, rebuild, mapping):
     mapping_url = endpoint + "fis/equipment/_mapping"
     print "opening mapping"
     with open(mapping) as mapping_file:
-        r = requests.put(mapping_url, data=mapping_file)
+        r = requests.put(mapping_url, data=mapping_file, verify=False)
         print "putting map file"
         if r.status_code != requests.codes.ok:
             print r.status_code
             # new mapping may be incompatible with previous
             # delete current mapping and re-push
 
-            requests.delete(mapping_url)
+            requests.delete(mapping_url, verify=False)
             print "failed. deleting..."
-            r = requests.put(mapping_url, data=mapping_file)
+            r = requests.put(mapping_url, data=mapping_file, verify=False)
             print "re-putting map file"
             if r.status_code != requests.codes.ok:
                 print(r.url, r.status_code)
@@ -229,7 +266,7 @@ def publish(bulk, endpoint, rebuild, mapping):
     print "mapped"
     # bulk import new publication documents
     bulk_import_url = endpoint + "_bulk"
-    r = requests.post(bulk_import_url, data=bulk)
+    r = requests.post(bulk_import_url, data=bulk, verify=False)
     if r.status_code != requests.codes.ok:
         print(r.url, r.status_code)
         r.raise_for_status()
@@ -245,11 +282,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
-    parser.add_argument('--es', default="https://prometheus-dev.int.colorado.edu/es/", help="elasticsearch service URL")
-    parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
+    parser.add_argument('--es', default="http://localhost:9200/", help="elasticsearch service URL")
+    parser.add_argument('--publish', default=True, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
-    parser.add_argument('--mapping', default="mappings/person.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://prometheus-dev.int.colorado.edu:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--mapping', default="mappings/equipment.json", help="publication elasticsearch mapping document")
+    parser.add_argument('--sparql', default='http://prometheus.int.colorado.edu:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()

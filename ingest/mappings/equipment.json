@@ -1,0 +1,119 @@
+{
+  "equipment": {
+    "properties": {
+      "equipId": {
+        "type": "string",
+        "index": "no"
+      },
+      "name": {
+        "type": "multi_field",
+        "fields": {
+          "name": {
+            "type": "string",
+            "index": "analyzed"
+          },
+          "exact": {
+            "type": "string",
+            "index": "not_analyzed"
+          }
+        }
+      },
+      "email": {
+        "type": "string",
+        "index": "analyzed"
+      },
+      "lab": {
+        "type": "string",
+        "index": "analyzed"
+      },
+      "url": {
+        "type": "string",
+        "index": "analyzed"
+      },
+      "eqtype": {
+        "properties": {
+          "name": {
+            "type": "multi_field",
+            "fields": {
+              "name": {
+                "type": "string",
+                "index": "analyzed"
+              },
+              "exact": {
+                "type": "string",
+                "index": "not_analyzed"
+              }
+            }
+          }
+        }
+      },
+      "sector_id": {
+        "properties": {
+          "name": {
+            "type": "multi_field",
+            "fields": {
+              "name": {
+                "type": "string",
+                "index": "analyzed"
+              },
+              "exact": {
+                "type": "string",
+                "index": "not_analyzed"
+              }
+            }
+          },
+          "uri": {
+            "type": "string",
+            "index": "no"
+          }
+        }
+      },
+      "organization": {
+        "properties": {
+          "name": {
+            "type": "multi_field",
+            "fields": {
+              "name": {
+                "type": "string",
+                "index": "analyzed"
+              },
+              "exact": {
+                "type": "string",
+                "index": "not_analyzed"
+              }
+            }
+          },
+          "uri": {
+            "type": "string",
+            "index": "no"
+          }
+        }
+      },
+      "researchArea": {
+        "properties": {
+          "name": {
+            "type": "multi_field",
+            "fields": {
+              "name": {
+                "type": "string",
+                "index": "analyzed"
+              },
+              "exact": {
+                "type": "string",
+                "index": "not_analyzed"
+              }
+            }
+          },
+          "uri": {
+            "type": "string",
+            "index": "no"
+          }
+        }
+      },
+      "uri": {
+        "type": "string",
+        "index": "no"
+      }
+    }
+  }
+}

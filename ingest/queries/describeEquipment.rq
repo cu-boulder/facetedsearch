@@ -15,10 +15,12 @@ PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 PREFIX equip: <http://vivo.colorado.edu/ontology/equipment#>
 PREFIX vlocal: <http://vivo.colorado.edu/ontology/vivo-fis#>
 
-DESCRIBE ?equipment ?id ?sector ?researcharea
+DESCRIBE ?equipment ?id ?type ?sector ?researcharea ?department
 WHERE {
-  ?equipment a vivo:Equipment .
+  {?equipment a vivo:Equipment .} UNION { ?equipment a equip:AnalyticalService  .}
+  ?equipment rdf:type ?type .
   OPTIONAL { ?equipment equip:equipId ?id }
   OPTIONAL { ?equipment vlocal:hasSector ?sector }
   OPTIONAL { ?equipment vivo:hasResearchArea ?researcharea }
+  OPTIONAL { ?equipment equip:department ?department }
 }
