@@ -102,7 +102,7 @@
     <script type="text/javascript">
         jQuery(document).ready(function($) {
             $('.facet-view-simple').facetview({
-                search_url: 'https://prometheus.int.colorado.edu/es/fis/person/_search',
+                search_url: 'https://vivo.colorado.edu/es/fis/person/_search',
                 page_size: 10,
                 sort: [
                     {"_score" : {"order" : "desc"}},
@@ -182,11 +182,16 @@
         #facetview_filter_group_isDcoMember {
             display: none; !important;
         }
-
+        .help {
+            margin: 10px;
+            border: 2px solid #c6ebc6;
+            padding: 0 10px 10px;
+        }
     </style>
 
 </head>
 <body>
-<div class="facet-view-simple"></div>
+<div class="facet-view-simple">
+<div class="help"> <h3> PEOPLE SEARCH </h3> Use the People Search bar directly below or the expandable Filters at left to explore Boulder faculty data. People Search allows for wildcard * or exact search with “ “ double quotations. The research filter is only searching the Research Keywords, not the free-text keywords or research overview. To search VIVO without the filters in order to include all research fields, use the site search bar in the VIVO page header. Filters default to ‘and’ logic. Toggle with the ‘or’ button if desired.</div>
 </body>
 </html>
