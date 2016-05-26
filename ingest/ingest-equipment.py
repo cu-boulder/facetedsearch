@@ -175,6 +175,45 @@ def get_organization(equipment):
 
     return organization
 
+def get_available_to(equipment):
+   
+    ''' This works a little differently than the rest of the 
+        functions because it splits a single value into multiple
+    '''
+    vals = Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.internalUse)) \
+        .one().value
+    if vals:
+        vals = [{"name": x.strip()} for x in vals.split(',')]
+    return vals
+
+def get_maintype(equipment):
+
+    return Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.type)) \
+        .one().value
+
+def get_subtype(equipment):
+
+    return Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.subtype)) \
+        .one().value
+
+def get_tests(equipment):
+
+    return Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.testsAvailable)) \
+        .map(lambda r: {"name": str(r)}).list()
+
+    '''return Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.testsAvailable)) \
+        .one().value'''
+
+def get_analysis(equipment):
+
+    return Maybe.of(equipment).stream() \
+        .flatmap(lambda p: p.objects(EQUIP.analysis)) \
+        .one().value
 
 def create_equipment_doc(equipment, endpoint):
     graph = describe_equipment(endpoint=endpoint, equipment=equipment)
@@ -218,15 +257,33 @@ def create_equipment_doc(equipment, endpoint):
     if eqtype:
         doc.update({"eqtype": eqtype})
 
+    available_to = get_available_to(eq)
+    if available_to:
+        doc.update({"available_to": available_to})
+
+    main_type = get_maintype(eq)
+    if main_type:
+        doc.update({"main_type": main_type})
+
+    subtype = get_subtype(eq)
+    if subtype:
+        doc.update({"subtype": subtype})
+
+    tests = get_tests(eq)
+    if tests:
+        doc.update({"tests": tests})
+
+    analysis = get_analysis(eq)
+    if analysis:
+        doc.update({"analysis": analysis})
+
     return doc
 
 
 def process_equipment(equipment, endpoint='http://prometheus.int.colorado.edu:2020/ds/sparql'):
     eq = create_equipment_doc(equipment=equipment, endpoint=endpoint)
-    print "person doc created"
     es_id = eq["equipId"] if "equipId" in eq and eq["equipId"] is not None else eq["uri"]
     es_id = get_id(es_id)
-    print "id: %s" % es_id
     return [json.dumps(get_metadata(es_id)), json.dumps(eq)]
 
 
@@ -246,10 +303,8 @@ def publish(bulk, endpoint, rebuild, mapping):
     # push current publication document mapping
 
     mapping_url = endpoint + "fis/equipment/_mapping"
-    print "opening mapping"
     with open(mapping) as mapping_file:
         r = requests.put(mapping_url, data=mapping_file, verify=False)
-        print "putting map file"
         if r.status_code != requests.codes.ok:
             print r.status_code
             # new mapping may be incompatible with previous
@@ -263,7 +318,6 @@ def publish(bulk, endpoint, rebuild, mapping):
                 print(r.url, r.status_code)
                 r.raise_for_status()
 
-    print "mapped"
     # bulk import new publication documents
     bulk_import_url = endpoint + "_bulk"
     r = requests.post(bulk_import_url, data=bulk, verify=False)
@@ -294,7 +348,6 @@ if __name__ == "__main__":
     # generate bulk import document for publications
     records = generate(threads=int(args.threads), sparql=args.sparql)
 
-    print "generated records"
     # save generated bulk import file so it can be backed up or reviewed if there are publish errors
     with open(args.out, "w") as bulk_file:
         bulk_file.write('\n'.join(records))

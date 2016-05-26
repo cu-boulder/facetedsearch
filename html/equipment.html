@@ -21,44 +21,59 @@
     <link rel="stylesheet" href="/themes/cu-boulder/browsers.css">
     <!-- <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" /> -->
 
-    <script id="person-template" type="text/x-handlebars-template">
+    <script id="equipment-template" type="text/x-handlebars-template">
         <tr>
             <td>
                 <div class="thumbnail">
-                    {{#if thumbnail}}<img src="{{thumbnail}}">{{/if}}
                     <div class="caption">
                         <h5><small>
-                            {{#if dcoId}}
-                            <a class="{{#if isDcoMember}}dco-logo{{/if}}" href="{{dcoId}}" target="_blank">{{name}}</a>
-                            {{else}}
-                            <a class="{{#if isDcoMember}}dco-logo{{/if}}" href="{{uri}}" target="_blank">{{name}}</a>
-                            {{/if}}
+                            <a href="{{uri}}" target="_blank">{{name}}</a>
                         </small></h5>
                     </div>
                 </div>
-                <div class="person-info">
-                    {{#if (showMostSpecificType mostSpecificType)}}<div><em class="small">{{mostSpecificType}}</em></div>{{/if}}
-                    {{#if email}}<div><strong>Email: </strong><a href="mailto:{{email}}">{{email}}</a></div>{{/if}}
-                    {{#if orcid}}<div><strong>ORCID ID:</strong> <a href="{{orcidURL orcid}}" target="_blank">{{orcid}}</a></div>{{/if}}
+                <div class="equipment-info">
 
-
-                    {{#if organization}}
-                    <div><strong>Organizations:</strong> {{#expand organization}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    {{#if eqtype}}
+                    <div><em class="small">{{eqtype.name}}</em></div>
+                    {{/if}}
+                    <div class="spaced">
+                    {{#if main_type}}
+                    <div><strong>Type:</strong> {{main_type}}</div>
                     {{/if}}
 
-                    {{#if affiliations}}
-                    <div><strong>Affiliations:</strong></div>
-                    {{#list affiliations}}{{position}} - <a href="{{org.uri}}">{{org.name}}</a>{{/list}}
+                    {{#if subtype}}
+                    <div><strong>Subtype:</strong> {{subtype}}</div>
                     {{/if}}
-
+                    </div>
                     {{#if researchArea}}
                     <div><strong>Research Areas:</strong> {{#expand researchArea}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
-                    {{#if homeCountry}}
-                    <div><strong>International Activities:</strong> {{homeCountry.name}}</div>
+                    {{#if sector_id}}
+                    <div><strong>Industry Sector:</strong> {{#expand sector_id}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
+                    {{#if available_to}}
+                    <div><strong>Available To:</strong> {{#expand available_to}}{{name}}{{/expand}}</div>
+                    {{/if}}
+
+                    {{#if tests}}
+                    <div><strong>Tests Available:</strong> {{#expand tests}}{{name}}{{/expand}}</div>
+                    {{/if}}
+
+                    {{#if analysis}}
+                    <div><strong>Analysis:</strong> {{analysis}}</div>
+                    {{/if}}
+
+                    <div class="spaced">
+                    {{#if organization}}
+                    <div class="gray"><strong>Organization:</strong> <a href="{{organization.uri}}" target="_blank">{{organization.name}}</a></div>
+                    {{/if}}
+
+                    {{#if lab}}
+                    <div class="gray"><strong>Lab:</strong> {{lab}}</div>
+                    {{/if}}
+                    </div>
                 </div>
             </td>
         </tr>
@@ -86,7 +101,7 @@
             return out + "</ul>";
         });
 
-        var source = $("#person-template").html();
+        var source = $("#equipment-template").html();
         var template = Handlebars.compile(source);
 
     </script>
@@ -108,7 +123,11 @@
                 default_facet_size: 15,
                 facets: [
                     {'field': 'organization.name.exact', 'display': 'Organization'},
-                    {'field': 'researchArea.name.exact', 'display': 'Research Area'},
+                    {'field': 'sector_id.name.exact', 'display': 'Industry Sector'},
+                    {'field': 'eqtype.name.exact', 'display': 'Category'},
+                    {'field': 'main_type', 'display': 'Type'},
+                    {'field': 'subtype', 'display': 'Subtype'},
+                    {'field': 'available_to.name.exact', 'display': 'Available To'}
                 ],
                 search_sortby: [
                     {'display':'Name','field':'name.exact'}
@@ -150,7 +169,7 @@
             box-shadow: none;
         }
 
-        .person-info {
+        .equipment-info {
             display: inline-block;
             vertical-align: top;
             clear: left;
@@ -173,11 +192,29 @@
         #facetview_filter_group_isDcoMember {
             display: none; !important;
         }
-
+        .help {
+            margin: 10px;
+            border: 2px solid #c6ebc6;
+            padding: 0 10px 10px;
+        }
+        .gray {
+            color: #999999;
+        }
+        hr {
+            margin: 3px 0;
+        }
+        .spaced {
+            margin: 4px 0 4px 0;
+        }
+        //This is to counteract unexpected margin shift from pages using bootstrap
+        div#ucb-searchform input[type="image"] {
+            margin: 0 !important;
+       }
     </style>
 
 </head>
 <body>
-<div class="facet-view-simple"></div>
+<div class="facet-view-simple">
+<div class="help"> <h3> Equipment &amp; Analysis Search </h3> New items are continually being added. Please contact the <a href="mailto:industry@colorado.edu">Office of Industry Collaboration</a> for assistance and check back often to see new information.<br/>See the full profile information and contact details by clicking the equipment or service name.</div></div>
 </body>
 </html>
