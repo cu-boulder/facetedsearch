@@ -1,6 +1,3 @@
-[submodule "browsers/facetview2"]
-	path = browsers/facetview2
-	url = https://github.com/tetherless-world/facetview2
-[submodule "html/facetview2"]
+[submodule "html/facetview2_cu"]
 	path = html/facetview2
-	url = https://github.com/tetherless-world/facetview2
+	url = https://github.com/cu-boulder/facetview2
