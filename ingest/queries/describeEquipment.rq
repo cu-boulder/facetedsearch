@@ -12,8 +12,8 @@ PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX bibo: <http://purl.org/ontology/bibo/>
 PREFIX obo: <http://purl.obolibrary.org/obo/>
 PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
-PREFIX equip: <http://vivo.colorado.edu/ontology/equipment#>
-PREFIX vlocal: <http://vivo.colorado.edu/ontology/vivo-fis#>
+PREFIX equip: <https://experts.colorado.edu/ontology/equipment#>
+PREFIX vlocal: <https://experts.colorado.edu/ontology/vivo-fis#>
 
 DESCRIBE ?equipment ?id ?type ?sector ?researcharea ?department
 WHERE {
