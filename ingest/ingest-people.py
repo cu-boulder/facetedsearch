@@ -261,6 +261,7 @@ def get_affiliations(person):
 
 
 def get_thumbnail(person):
+
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(VITRO_PUB.mainImage)) \
         .flatmap(lambda i: i.objects(VITRO_PUB.thumbnailImage)) \
@@ -331,12 +332,10 @@ def create_person_doc(person, endpoint):
     return doc
 
 
-def process_person(person, endpoint='http://prometheus-dev.int.colorado.edu:2020/ds/sparql'):
+def process_person(person, endpoint='http://prometheus.int.colorado.edu:2020/ds/sparql'):
     per = create_person_doc(person=person, endpoint=endpoint)
-    print "person doc created"
     es_id = per["fisId"] if "fisId" in per and per["fisId"] is not None else per["uri"]
     es_id = get_id(es_id)
-    print "id: %s" % es_id
     return [json.dumps(get_metadata(es_id)), json.dumps(per)]
 
 
@@ -358,16 +357,16 @@ def publish(bulk, endpoint, rebuild, mapping):
     mapping_url = endpoint + "fis/person/_mapping"
     print "opening mapping"
     with open(mapping) as mapping_file:
-        r = requests.put(mapping_url, data=mapping_file)
+        r = requests.put(mapping_url, data=mapping_file, verify=False)
         print "putting map file"
         if r.status_code != requests.codes.ok:
-            print r.status_code
+            print r.status_code, r.content
             # new mapping may be incompatible with previous
             # delete current mapping and re-push
 
-            requests.delete(mapping_url)
+            requests.delete(mapping_url, verify=False)
             print "failed. deleting..."
-            r = requests.put(mapping_url, data=mapping_file)
+            r = requests.put(mapping_url, data=mapping_file, verify=False)
             print "re-putting map file"
             if r.status_code != requests.codes.ok:
                 print(r.url, r.status_code)
@@ -376,7 +375,7 @@ def publish(bulk, endpoint, rebuild, mapping):
     print "mapped"
     # bulk import new publication documents
     bulk_import_url = endpoint + "_bulk"
-    r = requests.post(bulk_import_url, data=bulk)
+    r = requests.post(bulk_import_url, data=bulk, verify=False)
     if r.status_code != requests.codes.ok:
         print(r.url, r.status_code)
         r.raise_for_status()
@@ -392,18 +391,19 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
-    parser.add_argument('--es', default="https://prometheus-dev.int.colorado.edu/es/", help="elasticsearch service URL")
+    parser.add_argument('--es', default="http://localhost:9200/", help="elasticsearch service URL")
     parser.add_argument('--publish', default=True, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/person.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://prometheus-dev.int.colorado.edu:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://prometheus.int.colorado.edu:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()
 
     # generate bulk import document for publications
     records = generate(threads=int(args.threads), sparql=args.sparql)
-
+    #records = open(args.out, "r").read().split('\n')
+    #print records
     print "generated records"
     # save generated bulk import file so it can be backed up or reviewed if there are publish errors
     with open(args.out, "w") as bulk_file:
