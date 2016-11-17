@@ -18,10 +18,9 @@ WHERE {
   ?person a foaf:Person .
   ?person vitro:mostSpecificType ?mostSpecificType .
   OPTIONAL { { ?person dco:hasDcoId ?dcoid } UNION { ?dcoid dco:dcoIdFor ?person } }
-  OPTIONAL { ?person obo:ARG_2000028 ?vcard
-    OPTIONAL { ?vcard vcard:hasEmail ?email }
-    OPTIONAL { ?vcard vcard:hasName ?name }
-  }
+  ?person obo:ARG_2000028 ?vcard .
+  OPTIONAL { ?vcard vcard:hasEmail ?email }
+  ?vcard vcard:hasName ?name .
   OPTIONAL { ?person vivo:relatedBy ?position .
              ?position a vivo:Position .
              ?position vivo:relates ?affiliation .
