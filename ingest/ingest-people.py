@@ -124,7 +124,7 @@ def has_type(resource, type):
 
 def get_people(endpoint):
     r = select(endpoint, get_people_query)
-    return [rs["person"]["value"] for rs in r]
+    return [rs["person"]["value"].encode('utf-8') for rs in r]
 
 
 def describe_person(endpoint, person):
@@ -236,7 +236,7 @@ def get_home_country(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(VIVO.geographicFocus)) \
         .filter(has_label) \
-        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).one().value
+        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label().encode('utf-8'))}).one().value
 
 
 def get_affiliations(person):
