@@ -2,11 +2,11 @@
 DCO Faceted Search using ElasticSearch
 
 ## CUB specific notes
-  only people and equipment are used and imported into elastic
-  the ansible scripts in https://github.com/cu-boulder/fis_vivo_deployment are responsible for copying the correct html files into vivo
-  vivo@prometheus crontab has the following 2 entries to ingest into elastic:
-  00 03 * * * python /usr/local/vivo/experts-cub/vivo-cub/plugins/facetedsearch/ingest/ingest-people.py
-15 03 * * * python /usr/local/vivo/experts-cub/vivo-cub/plugins/facetedsearch/ingest/ingest-equipment.py
+  * only people and equipment are used and imported into elastic
+  * the ansible scripts in https://github.com/cu-boulder/fis_vivo_deployment are responsible for copying the correct html files into vivo
+  * vivo@prometheus crontab has the following 2 entries to ingest into elastic:
+  ** 00 03 * * * python /usr/local/vivo/experts-cub/vivo-cub/plugins/facetedsearch/ingest/ingest-people.py
+  ** 15 03 * * * python /usr/local/vivo/experts-cub/vivo-cub/plugins/facetedsearch/ingest/ingest-equipment.py
 
 ## Overview
 
