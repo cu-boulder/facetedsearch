@@ -7,6 +7,10 @@ DCO Faceted Search using ElasticSearch
   * vivo@prometheus crontab has the following 2 entries to ingest into elastic:
   * 00 03 * * * python /usr/local/vivo/experts-cub/vivo-cub/plugins/facetedsearch/ingest/ingest-people.py
   * 15 03 * * * python /usr/local/vivo/experts-cub/vivo-cub/plugins/facetedsearch/ingest/ingest-equipment.py
+  
+  * A fuseki SPARQL endpoint is required for the ingest scripts to query against to build the elastic document.
+  Instructions and source for this can be found at: https://wiki.duraspace.org/display/VIVO/Setting+up+a+VIVO+SPARQL+Endpoint
+  
 
 ## Overview
 
