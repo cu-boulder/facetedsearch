@@ -280,7 +280,7 @@ def create_equipment_doc(equipment, endpoint):
     return doc
 
 
-def process_equipment(equipment, endpoint='http://prometheus.int.colorado.edu:2020/ds/sparql'):
+def process_equipment(equipment, endpoint='http://prometheus-dev.int.colorado.edu:2020/ds/sparql'):
     eq = create_equipment_doc(equipment=equipment, endpoint=endpoint)
     es_id = eq["equipId"] if "equipId" in eq and eq["equipId"] is not None else eq["uri"]
     es_id = get_id(es_id)
@@ -340,7 +340,7 @@ if __name__ == "__main__":
     parser.add_argument('--publish', default=True, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/equipment.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://prometheus.int.colorado.edu:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://prometheus-dev.int.colorado.edu:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()
