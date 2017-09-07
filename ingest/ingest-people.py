@@ -9,6 +9,7 @@ from itertools import chain
 import functools
 import argparse
 import logging, sys
+import urllib
 
 
 class Maybe:
@@ -69,6 +70,8 @@ def load_file(filepath):
         return _file.read().replace('\n', " ")
 
 
+BASE_URL = 'https://vivo-cub-dev.colorado.edu/individual'
+
 PROV = Namespace("http://www.w3.org/ns/prov#")
 BIBO = Namespace("http://purl.org/ontology/bibo/")
 VCARD = Namespace("http://www.w3.org/2006/vcard/ns#")
@@ -77,10 +80,11 @@ VITRO = Namespace("http://vitro.mannlib.cornell.edu/ns/vitro/0.7#")
 VITRO_PUB = Namespace("http://vitro.mannlib.cornell.edu/ns/vitro/public#")
 OBO = Namespace("http://purl.obolibrary.org/obo/")
 DCO = Namespace("http://info.deepcarbon.net/schema#")
-CUB = Namespace("https://vivo-cub-dev.colorado.edu/individual/")
+CUB = Namespace(BASE_URL + "/")
 FIS_LOCAL = Namespace("https://experts.colorado.edu/ontology/vivo-fis#")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
+
 
 get_people_query = load_file("queries/listPeople.rq")
 describe_person_query = load_file("queries/describePerson.rq")
@@ -238,7 +242,7 @@ def get_home_country(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(VIVO.geographicFocus)) \
         .filter(has_label) \
-        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label().encode('utf-8'))}).list()
+        .map(lambda r: {"uri": BASE_URL + '?uri=' + urllib.quote_plus(str(r.identifier)), "name": str(r.label().encode('utf-8'))}).list()
 
 
 def get_affiliations(person):
@@ -331,10 +335,12 @@ def create_person_doc(person, endpoint):
     if affiliations:
         doc.update({"affiliations": affiliations})
 
+    logging.debug('Person doc: %s', doc)
     return doc
 
 
 def process_person(person, endpoint='http://prometheus-dev.int.colorado.edu:2020/ds/sparql'):
+    logging.info('Person: %s', person)
     per = create_person_doc(person=person, endpoint=endpoint)
     es_id = per["fisId"] if "fisId" in per and per["fisId"] is not None else per["uri"]
     es_id = get_id(es_id)
@@ -391,7 +397,7 @@ def generate(threads, sparql):
 
 if __name__ == "__main__":
 
-    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     parser = argparse.ArgumentParser()
     parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
     parser.add_argument('--es', default="http://localhost:9200/", help="elasticsearch service URL")
