@@ -10,6 +10,7 @@ import functools
 import argparse
 import logging, sys
 import urllib
+import pdb   # Debugging purposes - comment out for production
 
 
 class Maybe:
@@ -336,11 +337,15 @@ def create_person_doc(person, endpoint):
         doc.update({"affiliations": affiliations})
 
     logging.debug('Person doc: %s', doc)
+    #pdb.set_trace()
     return doc
 
 
 def process_person(person, endpoint='http://prometheus-dev.int.colorado.edu:2020/ds/sparql'):
-    logging.info('Person: %s', person)
+    logging.info('Processing Person: %s', person)
+    if person.find("fisid_") == -1:
+       logging.info('INVALID PERSON: %s', person) 
+       return []
     per = create_person_doc(person=person, endpoint=endpoint)
     es_id = per["fisId"] if "fisId" in per and per["fisId"] is not None else per["uri"]
     es_id = get_id(es_id)
