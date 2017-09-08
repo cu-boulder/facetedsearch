@@ -342,7 +342,7 @@ def create_person_doc(person, endpoint):
     return doc
 
 
-def process_person(person, endpoint='http://prometheus-dev.int.colorado.edu:2020/ds/sparql'):
+def process_person(person, endpoint='http://localhost:2020/ds/sparql'):
     logging.info('Processing Person: %s', person)
     if person.find("fisid_") == -1:
        logging.info('INVALID PERSON: %s', person) 
@@ -410,7 +410,7 @@ if __name__ == "__main__":
     parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/person.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://prometheus-dev.int.colorado.edu:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()
