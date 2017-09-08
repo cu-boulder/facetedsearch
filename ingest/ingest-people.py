@@ -71,8 +71,11 @@ def load_file(filepath):
         return _file.read().replace('\n', " ")
 
 
-BASE_URL = 'https://vivo-cub-dev.colorado.edu/individual'
 SYSTEM_NAME = socket.gethostname()
+if '-dev' in SYSTEM_NAME:
+   BASE_URL = 'https://vivo-cub-dev.colorado.edu/individual'
+else:
+   BASE_URL = 'https://experts.colorado.edu/individual'
 
 PROV = Namespace("http://www.w3.org/ns/prov#")
 BIBO = Namespace("http://purl.org/ontology/bibo/")
