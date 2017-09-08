@@ -192,6 +192,14 @@ def get_email(person):
         .filter(non_empty_str) \
         .one().value
 
+def get_moniker(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
+        .flatmap(lambda v: v.objects(VCARD.hasTitle)) \
+        .flatmap(lambda e: e.objects(VCARD.title)) \
+        .filter(non_empty_str) \
+        .one().value
+
 
 def get_research_areas(person):
     return Maybe.of(person).stream() \
@@ -310,6 +318,10 @@ def create_person_doc(person, endpoint):
     email = get_email(per)
     if email:
         doc.update({"email": email})
+
+    moniker = get_moniker(per)
+    if moniker:
+        doc.update({"moniker": moniker})
 
     research_areas = get_research_areas(per)
     if research_areas:
