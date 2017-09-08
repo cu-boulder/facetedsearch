@@ -11,7 +11,7 @@ import argparse
 import logging, sys
 import urllib
 import pdb   # Debugging purposes - comment out for production
-
+import socket
 
 class Maybe:
     def __init__(self, v=None):
@@ -72,6 +72,7 @@ def load_file(filepath):
 
 
 BASE_URL = 'https://vivo-cub-dev.colorado.edu/individual'
+SYSTEM_NAME = socket.gethostname()
 
 PROV = Namespace("http://www.w3.org/ns/prov#")
 BIBO = Namespace("http://purl.org/ontology/bibo/")
