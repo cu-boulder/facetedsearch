@@ -56,7 +56,7 @@
                     {{/if}}
 
                     {{#if homeCountry}}
-                    <div><strong>International Activities:</strong> {{homeCountry.name}}</div>
+                    <div><strong>International Activities:</strong> {{#expand homeCountry}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
                 </div>
@@ -102,7 +102,7 @@
     <script type="text/javascript">
         jQuery(document).ready(function($) {
             $('.facet-view-simple').facetview({
-                search_url: 'https://experts.colorado.edu/es/fis/person/_search',
+                search_url: '/es/fis/person/_search',
                 page_size: 10,
                 sort: [
                     {"_score" : {"order" : "desc"}},
