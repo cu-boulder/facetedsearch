@@ -3,3 +3,4 @@
 *.bulk
 *.out
 .idea/*
+ingest/spool/*

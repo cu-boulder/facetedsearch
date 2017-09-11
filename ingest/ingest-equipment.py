@@ -337,7 +337,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
     parser.add_argument('--es', default="http://localhost:9200/", help="elasticsearch service URL")
-    parser.add_argument('--publish', default=True, action="store_true", help="publish to elasticsearch?")
+    parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/equipment.json", help="publication elasticsearch mapping document")
     parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
