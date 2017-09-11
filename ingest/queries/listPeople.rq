@@ -13,5 +13,6 @@ PREFIX bibo: <http://purl.org/ontology/bibo/>
 
 SELECT DISTINCT ?person
 WHERE {
-    ?person a foaf:Person
+    ?person a foaf:Person .
+    ?person  <http://purl.obolibrary.org/obo/ARG_2000028> ?x
 }
