@@ -43,7 +43,7 @@
       },
       "orcid": {
         "type": "string",
-        "index": "no"
+        "index": "not_analyzed"
       },
       "homeCountry": {
         "properties": {
