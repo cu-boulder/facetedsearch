@@ -1,5 +1,5 @@
 # get counts of index prior to deletion
-dstamp=`date +%Y%m%e-%H%M%S`
+dstamp=`date +%Y%m%d-%H%M%S`
 mkdir spool/$dstamp
 outfile="spool/${dstamp}/rebuild-index.out"
 echo "CREATING ES DOCUMENTS" > $outfile

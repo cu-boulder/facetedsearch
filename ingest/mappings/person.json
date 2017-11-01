@@ -3,7 +3,7 @@
     "properties": {
       "fisId": {
         "type": "string",
-        "index": "no"
+        "index": "not_analyzed"
       },
       "email": {
         "type": "string",
@@ -62,7 +62,7 @@
           },
           "uri": {
             "type": "string",
-            "index": "no"
+            "index": "not_analyzed"
           }
         }
       },
@@ -83,7 +83,7 @@
           },
           "uri": {
             "type": "string",
-            "index": "no"
+            "index": "not_analyzed"
           }
         }
       },
@@ -104,7 +104,7 @@
           },
           "uri": {
             "type": "string",
-            "index": "no"
+            "index": "not_analyzed"
           }
         }
       },
@@ -125,7 +125,7 @@
           },
           "uri": {
             "type": "string",
-            "index": "no"
+            "index": "not_analyzed"
           }
         }
       },
@@ -135,7 +135,7 @@
       },
       "uri": {
         "type": "string",
-        "index": "no"
+        "index": "not_analyzed"
       }
     }
   }
