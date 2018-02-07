@@ -2,7 +2,6 @@ PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl:   <http://www.w3.org/2002/07/owl#>
-PREFIX dco: <http://info.deepcarbon.net/schema#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX vivo: <http://vivoweb.org/ontology/core#>
@@ -13,11 +12,10 @@ PREFIX bibo: <http://purl.org/ontology/bibo/>
 PREFIX obo: <http://purl.obolibrary.org/obo/>
 PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 
-DESCRIBE ?person ?dcoid ?mostSpecificType ?org ?dco_community ?portal_group ?main_image ?thumb_image ?thumbnail ?research_area ?vcard ?email ?name ?position ?affiliation ?homeCountry
+DESCRIBE ?person ?mostSpecificType ?main_image ?thumb_image ?thumbnail ?research_area ?vcard ?email ?name ?position ?affiliation ?homeCountry
 WHERE {
   ?person a foaf:Person .
   OPTIONAL { ?person vitro:mostSpecificType ?mostSpecificType }
-  OPTIONAL { { ?person dco:hasDcoId ?dcoid } UNION { ?dcoid dco:dcoIdFor ?person } }
   ?person obo:ARG_2000028 ?vcard .
   OPTIONAL { ?vcard vcard:hasEmail ?email }
   ?vcard vcard:hasName ?name .
@@ -25,9 +23,6 @@ WHERE {
              ?position a vivo:Position .
              ?position vivo:relates ?affiliation .
              ?affiliation a foaf:Organization }
-  OPTIONAL { ?person dco:inOrganization ?org }
-  OPTIONAL { ?person dco:associatedDCOCommunity ?dco_community }
-  OPTIONAL { ?person dco:associatedDCOPortalGroup ?portal_group }
   OPTIONAL { ?person vitro-pub:mainImage ?main_image .
              ?main_image vitro-pub:thumbnailImage ?thumb_image .
              ?thumb_image vitro-pub:downloadLocation ?thumbnail }

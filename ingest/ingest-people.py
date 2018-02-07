@@ -120,16 +120,23 @@ def describe(endpoint, query):
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
     try:
+        print ("Describe passed: ", query)
         return sparql.query().convert()
-    except RuntimeWarning:
+    #except RuntimeWarning:
+    except:
+        print ("Describe ERROR: ", query)
         pass
 
 
 def has_type(resource, type):
-    for rtype in resource.objects(RDF.type):
-        if str(rtype.identifier) == str(type):
-            return True
-    return False
+    try:
+      for rtype in resource.objects(RDF.type):
+          if str(rtype.identifier) == str(type):
+              return True
+      return False
+    except:
+      print ("ERROR has_type on type: ", type)
+      return False
 
 
 def get_people(endpoint):
@@ -228,20 +235,6 @@ def get_organizations(person):
         .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
     '''
 
-def get_portal_groups(person):
-    return Maybe.of(person).stream() \
-        .flatmap(lambda p: p.objects(DCO.associatedDCOPortalGroup)) \
-        .filter(has_label) \
-        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
-
-
-def get_dco_communities(person):
-    return Maybe.of(person).stream() \
-        .flatmap(lambda p: p.objects(DCO.associatedDCOCommunity)) \
-        .filter(has_label) \
-        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
-
-        #.map(lambda r: {"uri": str(r.identifier), "name": str(r.label().encode('utf-8'))}).one().value
 
 def get_home_country(person):
     return Maybe.of(person).stream() \
@@ -282,19 +275,33 @@ def get_thumbnail(person):
 
 
 def create_person_doc(person, endpoint):
+    logging.info('create_person_doc: %s', person)
+    logging.debug('about to describe person: %s', person)
     graph = describe_person(endpoint=endpoint, person=person)
-
-    per = graph.resource(person)
-
+    print("graph:", graph)
+    sys.stdout.flush()
+    logging.debug('about to create graph resource for : %s', person)
     try:
+        per = graph.resource(person)
+    except:
+        print("Can't create graph for:", person)
+        logging.info('failed to create graph for : %s', person)
+        logging.info('graph is : %s', graph)
+        return {}
+
+    logging.debug('check label: %s', person)
+    try:
+        print("person has label:", per.label())
         name = per.label()
     except AttributeError:
         print("missing name:", person)
         return {}
 
+    logging.debug('check fisid: %s', person)
     fis = get_fisid(per)
     doc = {"uri": person, "name": name, "fisId": fis}
 
+    logging.debug('check orcid: %s', person)
     orcid = get_orcid(per)
     if orcid:
         doc.update({"orcid": orcid})
@@ -326,10 +333,6 @@ def create_person_doc(person, endpoint):
     organizations = get_organizations(per)
     if organizations:
         doc.update({"organization": organizations})
-
-    portal_groups = get_portal_groups(per)
-    if portal_groups:
-        doc.update({"portalGroups": portal_groups})
 
     thumbnail = get_thumbnail(per)
     if thumbnail:
