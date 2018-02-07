@@ -2,7 +2,6 @@ PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 PREFIX owl:   <http://www.w3.org/2002/07/owl#>
-PREFIX dco: <http://info.deepcarbon.net/schema#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX vivo: <http://vivoweb.org/ontology/core#>
@@ -10,18 +9,17 @@ PREFIX vitro: <http://vitro.mannlib.cornell.edu/ns/vitro/0.7#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX bibo: <http://purl.org/ontology/bibo/>
 
-DESCRIBE ?publication ?dcoid ?mostSpecificType ?subjectArea ?venue ?event ?community ?team ?authorship ?author ?researchArea ?authorOrganization
+DESCRIBE ?publication ?abstract ?doi ?mostSpecificType ?journal ?subjectArea ?venue ?event ?authorship ?author 
 WHERE {
-  ?publication dco:hasDcoId ?dcoid .
   ?publication vitro:mostSpecificType ?mostSpecificType .
-  OPTIONAL { ?publication dco:associatedDCOCommunity ?community }
-  OPTIONAL { ?publication dco:associatedDCOTeam ?team }
+  ?publication a <http://purl.obolibrary.org/obo/IAO_0000030> .
   OPTIONAL { ?publication bibo:presentedAt ?event }
   OPTIONAL { ?publication vivo:hasPublicationVenue ?venue }
   OPTIONAL { ?publication vivo:hasSubjectArea ?subjectArea }
+  OPTIONAL { ?publication  bibo:doi ?doi }
+  OPTIONAL { ?publication bibo:abstract ?abstract } 
+  OPTIONAL { ?publication vivo:hasPublicationVenue ?journal } 
   OPTIONAL { ?publication vivo:relatedBy ?authorship .
     ?authorship vivo:relates ?author .
-    ?author a foaf:Person .
-    OPTIONAL { ?author vivo:hasResearchArea ?researchArea }
-    OPTIONAL { ?author dco:inOrganization ?authorOrganization } }
+    ?author a foaf:Person }
 }

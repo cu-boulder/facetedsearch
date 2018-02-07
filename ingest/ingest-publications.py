@@ -9,10 +9,18 @@ import argparse
 import requests
 import warnings
 import pprint
+import socket
+import logging, sys
 
 def load_file(filepath):
     with open(filepath) as _file:
         return _file.read().replace('\n', " ")
+
+SYSTEM_NAME = socket.gethostname()
+if '-dev' in SYSTEM_NAME:
+   BASE_URL = 'https://vivo-cub-dev.colorado.edu/individual'
+else:
+   BASE_URL = 'https://experts.colorado.edu/individual'
 
 
 get_publications_query = load_file("queries/listPublications.rq")
@@ -26,8 +34,12 @@ VITRO = Namespace("http://vitro.mannlib.cornell.edu/ns/vitro/0.7#")
 OBO = Namespace("http://purl.obolibrary.org/obo/")
 DCO = Namespace("http://info.deepcarbon.net/schema#")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
+CUB = Namespace(BASE_URL + "/")
+FIS_LOCAL = Namespace("https://experts.colorado.edu/ontology/vivo-fis#")
+NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
 
-_index = "dco"
+
+_index = "fis"
 _type = "publication"
 
 
@@ -61,7 +73,12 @@ def get_publications(endpoint):
     return [rs["publication"]["value"] for rs in r]
 
 
-def process_publication(publication, endpoint):
+def process_publication(publication, endpoint='http://localhost:2020/ds/sparql'):
+    logging.info('Processing Publication: %s', publication)
+    if publication.find("pubid_") == -1:
+       logging.info('INVALID PUBLICATION: %s', publication)
+       return []
+
     pub = create_publication_doc(publication=publication, endpoint=endpoint)
     if "dcoId" in pub and pub["dcoId"] is not None:
         return [json.dumps(get_metadata(get_id(pub["dcoId"]))), json.dumps(pub)]
@@ -235,8 +252,10 @@ def publish(bulk, endpoint, rebuild, mapping):
 
 def generate(threads, sparql):
     pool = multiprocessing.Pool(threads)
-    params = [(publication, sparql) for publication in get_publications(endpoint=sparql)]
-    return list(itertools.chain.from_iterable(pool.starmap(process_publication, params)))
+    #params = [(publication, sparql) for publication in get_publications(endpoint=sparql)]
+    params = [publication for publication in get_publications(endpoint=sparql)]
+    print(params)
+    return list(itertools.chain.from_iterable(pool.map(process_publication, params)))
 
 
 if __name__ == "__main__":
@@ -247,7 +266,7 @@ if __name__ == "__main__":
     parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/publication.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://deepcarbon.tw.rpi.edu:3030/VIVO/query', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()
