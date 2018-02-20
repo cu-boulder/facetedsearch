@@ -126,6 +126,11 @@
       "isDcoPublication":{
         "type":"boolean"
       },
+     "amscore":{
+        "type":"float",
+        "index": "not_analyzed",
+        "null_value" : 0
+      },
       "keywords":{
         "type":"multi_field",
         "fields":{

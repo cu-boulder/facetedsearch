@@ -9,7 +9,7 @@ PREFIX vitro: <http://vitro.mannlib.cornell.edu/ns/vitro/0.7#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX bibo: <http://purl.org/ontology/bibo/>
 
-DESCRIBE ?publication ?abstract ?doi ?mostSpecificType ?journal ?subjectArea ?venue ?event ?authorship ?author 
+DESCRIBE ?publication ?abstract ?doi ?mostSpecificType ?journal ?subjectArea ?venue ?event ?authorship ?author ?dateTimeValue
 WHERE {
   ?publication vitro:mostSpecificType ?mostSpecificType .
   ?publication a <http://purl.obolibrary.org/obo/IAO_0000030> .
@@ -19,6 +19,7 @@ WHERE {
   OPTIONAL { ?publication  bibo:doi ?doi }
   OPTIONAL { ?publication bibo:abstract ?abstract } 
   OPTIONAL { ?publication vivo:hasPublicationVenue ?journal } 
+  OPTIONAL { ?publication vivo:dateTimeValue ?dateTimeValue } 
   OPTIONAL { ?publication vivo:relatedBy ?authorship .
     ?authorship vivo:relates ?author .
     ?author a foaf:Person }
