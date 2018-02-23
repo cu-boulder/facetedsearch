@@ -21,8 +21,8 @@ CONSTRUCT
     ?publication rdfs:label ?label .
     ?publication bibo:doi ?doi .
     ?publication bibo:abstract ?abstract .
-    ?publication vivo:dateTimeValue ?publicationObj .
-    ?publicationObj vivo:dateTime ?publicationYear .
+    ?publication vivo:dateTimeValue ?pubdateobj .
+    ?pubdateobj vivo:dateTime ?pubdatevalue .
     ?publication bibo:presentedAt ?event .
     ?event rdfs:label ?eventLabel .
     ?publication vivo:hasPublicationVenue ?venue .
@@ -45,7 +45,7 @@ CONSTRUCT
     ?vcardName vcard:givenName ?vcardgName .
     ?vcardName vcard:familyName ?vcardfName .}
 WHERE
-  { GRAPH <http://vitro.mannlib.cornell.edu/default/vitro-kb-2> {
+  {
    { ?publication rdf:type ?pubType .
       ?pubType rdfs:label ?pubTypeLabel .
         ?publication rdfs:label ?label
@@ -60,8 +60,8 @@ WHERE
       }
     UNION
       { ?publication rdf:type ?pubType .
-        ?publication vivo:dateTimeValue ?publicationObj .
-        ?publicationObj vivo:dateTime ?publicationYear
+        ?publication vivo:dateTimeValue ?pubdateobj .
+        ?pubdateobj vivo:dateTime ?pubdatevalue
       }
     UNION
       { ?publication rdf:type ?pubType .
@@ -119,5 +119,9 @@ WHERE
         ?vcardName vcard:familyName ?vcardfName .
         ?vcardName vcard:givenName ?vcardgName
       }
+    UNION
+      { ?publication rdf:type ?pubType .
+        ?publication vitro:mostSpecificType ?mostSpecificType 
+      }
 
-  }   FILTER ( ( ( ( ( ( ( ?pubType = bibo:AcademicArticle ) || ( ?pubType = vivo:Abstract ) ) || ( ?pubType = bibo:Article ) ) || ( ?pubType = bibo:Book ) ) || ( ?pubType = bibo:Chapter ) ) || ( ?pubType = bibo:Thesis ) ) || ( ?pubType = vivo:ConferencePaper ) ) }
+}   
