@@ -1,0 +1,48 @@
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+PREFIX vitro: <http://vitro.mannlib.cornell.edu/ns/vitro/0.7#>
+PREFIX dco: <http://info.deepcarbon.net/schema#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX vitro-public: <http://vitro.mannlib.cornell.edu/ns/vitro/public#>
+PREFIX vivo: <http://vivoweb.org/ontology/core#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX bibo: <http://purl.org/ontology/bibo/>
+
+CONSTRUCT
+{ 
+    ?publication a bibo:Document .
+    ?publication vitro:mostSpecificType ?mostSpecificType .
+    ?mostSpecificType rdfs:label ?typeLabel .
+    ?publication rdf:type ?mostSpecificType .
+    ?publication rdfs:label ?label .
+    ?publication bibo:doi ?doi .
+    ?publication bibo:abstract ?abstract .
+    ?publication vivo:relatedBy ?authorship .
+    ?authorship rdf:type vivo:Authorship .
+    ?authorship vivo:relates ?author .
+    ?publication vivo:dateTimeValue ?pubdateobj .
+    ?pubdateobj vivo:dateTime ?pubdatevalue .
+    ?publication vivo:hasPublicationVenue ?venue .
+    ?venue rdfs:label ?venueLabel .
+}
+WHERE
+{
+   ?publication a bibo:Document .
+   ?publication vitro:mostSpecificType ?mostSpecificType .
+   ?mostSpecificType rdfs:label ?typeLabel .
+   ?publication rdfs:label ?label .
+   ?publication vivo:relatedBy ?authorship .
+   ?authorship rdf:type vivo:Authorship .
+   ?authorship vivo:relates ?author .
+   OPTIONAL { ?publication bibo:doi ?doi }
+   OPTIONAL { ?publication bibo:abstract ?abstract }
+   OPTIONAL { ?publication vivo:dateTimeValue ?pubdateobj .
+              ?pubdateobj vivo:dateTime ?pubdatevalue
+            }
+   OPTIONAL { ?publication vivo:hasPublicationVenue ?venue .
+              ?venue rdfs:label ?venueLabel
+            }
+}

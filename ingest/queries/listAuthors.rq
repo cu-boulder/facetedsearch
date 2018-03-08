@@ -11,7 +11,23 @@ PREFIX vivo: <http://vivoweb.org/ontology/core#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX bibo: <http://purl.org/ontology/bibo/>
 
-SELECT DISTINCT ?publication
-WHERE { 
-  ?publication a bibo:Document .
+construct
+{
+?person a foaf:Person;
+        rdfs:label ?label;
+        vivo:orcidId ?orcid;
+        vivo:hasResearchArea ?subject; 
+        vivo:researchAreaOf ?person;
+        vivo:relatedBy ?position .
+?position rdf:type vivo:Position .
+?dept vivo:relatedBy ?position 
+}
+WHERE {
+    ?person a foaf:Person;
+    rdfs:label ?label;
+    vivo:relatedBy ?position .
+    ?position rdf:type vivo:Position .
+    ?dept vivo:relatedBy ?position .
+    OPTIONAL { ?person vivo:orcidId ?orcid }
+    OPTIONAL { ?person vivo:hasResearchArea ?subject }
 }

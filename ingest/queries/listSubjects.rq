@@ -1,0 +1,19 @@
+PREFIX cub: <https://experts.colorado.edu/individual/>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX vivo: <http://vivoweb.org/ontology/core#>
+PREFIX vlocal: <https://experts.colorado.edu/ontology/vivo-fis#>  
+
+Construct {
+  ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept> .
+  ?subject <http://vitro.mannlib.cornell.edu/ns/vitro/0.7#mostSpecificType>  <http://www.w3.org/2004/02/skos/core#Concept> .
+  ?subject <http://www.w3.org/2000/01/rdf-schema#label> ?label .
+  ?subject <https://experts.colorado.edu/ontology/vivo-fis#spinId> ?spinId .
+  ?subject <http://vitro.mannlib.cornell.edu/ns/vitro/0.7#moniker> ?moniker
+}
+Where {
+  ?subject <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2004/02/skos/core#Concept> .
+  ?subject rdfs:label ?label .
+  ?subject vlocal:spinId ?spinId .
+  optional { ?subject cub:moniker ?moniker . }
+}

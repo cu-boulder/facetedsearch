@@ -1,105 +1,208 @@
-__author__ = 'szednik'
-
 from SPARQLWrapper import SPARQLWrapper, JSON
+from rdflib import Graph, Namespace, RDF
 import json
-from rdflib import Namespace, RDF
-import multiprocessing
-import itertools
-import argparse
 import requests
-import warnings
-import pprint
+import multiprocessing
+from itertools import chain
+import functools
+import argparse
+import logging, sys
+import urllib
+import pdb   # Debugging purposes - comment out for production
+import socket
+import time
+import os
 
-def load_file(filepath):
-    with open(filepath) as _file:
-        return _file.read().replace('\n', " ")
+g1 = Graph()
 
+SYSTEM_NAME = socket.gethostname()
+if '-dev' in SYSTEM_NAME:
+   BASE_URL = 'https://vivo-cub-dev.colorado.edu/individual'
+else:
+   BASE_URL = 'https://experts.colorado.edu/individual'
 
-get_publications_query = load_file("queries/listPublications.rq")
-describe_publication_query = load_file("queries/describePublication.rq")
+ALTMETRIC_API_KEY = 'b7850a6cae053643e3f5f4514569a2ad'
 
 PROV = Namespace("http://www.w3.org/ns/prov#")
 BIBO = Namespace("http://purl.org/ontology/bibo/")
 VCARD = Namespace("http://www.w3.org/2006/vcard/ns#")
 VIVO = Namespace('http://vivoweb.org/ontology/core#')
 VITRO = Namespace("http://vitro.mannlib.cornell.edu/ns/vitro/0.7#")
+VITRO_PUB = Namespace("http://vitro.mannlib.cornell.edu/ns/vitro/public#")
 OBO = Namespace("http://purl.obolibrary.org/obo/")
-DCO = Namespace("http://info.deepcarbon.net/schema#")
+CUB = Namespace(BASE_URL + "/")
+FIS_LOCAL = Namespace("https://experts.colorado.edu/ontology/vivo-fis#")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
+FIS = Namespace("https://experts.colorado.edu/individual")
+NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
 
-_index = "dco"
-_type = "publication"
+endpoint='http://localhost:2020/ds/sparql'
+
+# standard filters
+non_empty_str = lambda s: True if s else False
+has_label = lambda o: True if o.label() else False
+
+
+class Maybe:
+    def __init__(self, v=None):
+        self.value = v
+
+    @staticmethod
+    def nothing():
+        return Maybe()
+
+    @staticmethod
+    def of(t):
+        return Maybe(t)
+
+    def reduce(self, action):
+        return Maybe.of(functools.reduce(action, self.value)) if self.value else Maybe.nothing()
+
+    def stream(self):
+        return Maybe.of([self.value]) if self.value is not None else Maybe.nothing()
+
+    def map(self, action):
+        return Maybe.of(chain(map(action, self.value))) if self.value is not None else Maybe.nothing()
+
+    def flatmap(self, action):
+        return Maybe.of(chain.from_iterable(map(action, self.value))) if self.value is not None else Maybe.nothing()
+
+    def andThen(self, action):
+        return Maybe.of(action(self.value)) if self.value is not None else Maybe.nothing()
+
+    def orElse(self, action):
+        return Maybe.of(action()) if self.value is None else Maybe.of(self.value)
+
+    def do(self, action):
+        if self.value:
+            action(self.value)
+        return self
+
+    def filter(self, action):
+        return Maybe.of(filter(action, self.value)) if self.value is not None else Maybe.nothing()
+
+    def followedBy(self, action):
+        return self.andThen(lambda _: action)
+
+    def one(self):
+        try:
+            return Maybe.of(next(self.value)) if self.value is not None else Maybe.nothing()
+        except StopIteration:
+            return Maybe.nothing()
+        except TypeError:
+            return self
+
+    def list(self):
+        return list(self.value) if self.value is not None else []
+
+def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
+    if doi:
+        query = ('http://api.altmetric.com/v1/doi/' + doi + '?key=' +
+                 ALTMETRIC_API_KEY)
+
+        r = requests.get(query)
+        if r.status_code == 200:
+            try:
+                json = r.json()
+                return json['score']
+            except ValueError:
+                logging.exception("Could not parse Altmetric response. ")
+                return None
+        elif r.status_code == 420:
+            logging.info("Rate limit in effect!!!!")
+            time.sleep(5)
+        elif r.status_code == 403:
+            logging.warn("Altmetric says you aren't authorized for this call.")
+            return None
+        else:
+            logging.debug("No altmetric record or API error. ")
+            return None
+    else:
+        return None
+
+def get_orcid(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(VIVO.orcidId)) \
+        .map(lambda o: o.identifier) \
+        .map(lambda o: o[o.rfind('/') + 1:]).one().value
+
+
+def get_research_areas(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(VIVO.hasResearchArea)) \
+        .filter(has_label) \
+        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
+
+
+def get_organizations(person):
+
+    organizations = []
+
+    positions = Maybe.of(person).stream() \
+        .flatmap(lambda per: per.objects(VIVO.relatedBy)) \
+        .filter(lambda related: has_type(related, VIVO.Position)).list()
+
+    for position in positions:
+        organization = Maybe.of(position).stream() \
+            .flatmap(lambda r: r.subjects(VIVO.relatedBy)) \
+            .filter(lambda o: has_type(o, FOAF.Organization)) \
+            .filter(has_label) \
+            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}).one().value
+
+        if organization:
+            organizations.append(organization)
+    return organizations
 
 
 def get_metadata(id):
-    return {"index": {"_index": _index, "_type": _type, "_id": id}}
+    return {"index": {"_index": "fispubs-v1", "_type": "publication", "_id": id}}
 
+def has_type(resource, type):
+    for rtype in resource.objects(predicate=RDF.type):
+        if str(rtype.identifier) == str(type):
+            return True
+    return False
 
-def get_id(dco_id):
-    return dco_id[dco_id.rfind('/') + 1:]
-
-
-def select(endpoint, query):
-    sparql = SPARQLWrapper(endpoint)
-    sparql.setQuery(query)
-    sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-    return results["results"]["bindings"]
-
+def load_file(filepath):
+    with open(filepath) as _file:
+        return _file.read().replace('\n', " ")
 
 def describe(endpoint, query):
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
+    logging.debug('logging - describe query: %s', query)
     try:
-        return sparql.query().convert()
+        results = sparql.query().convert()
+        print("results: ", results)
+        return results
     except RuntimeWarning:
         pass
 
+def create_publication_doc(pubgraph,publication):
 
-def get_publications(endpoint):
-    r = select(endpoint, get_publications_query)
-    return [rs["publication"]["value"] for rs in r]
-
-
-def process_publication(publication, endpoint):
-    pub = create_publication_doc(publication=publication, endpoint=endpoint)
-    if "dcoId" in pub and pub["dcoId"] is not None:
-        return [json.dumps(get_metadata(get_id(pub["dcoId"]))), json.dumps(pub)]
-    else:
-        return []
-
-
-def describe_publication(endpoint, publication):
-    q = describe_publication_query.replace("?publication", "<" + publication + ">")
-    return describe(endpoint, q)
-
-
-def create_publication_doc(publication, endpoint):
-    graph = describe_publication(endpoint=endpoint, publication=publication)
-
-    pub = graph.resource(publication)
+    pub = g1.resource(publication)
 
     try:
-        title = pub.label().toPython()
+        title = pubgraph.label(publication,"default title")
+        logging.info('title: %s', title)
     except AttributeError:
         print("missing title:", publication)
         return {}
 
-    dco_id = list(pub.objects(DCO.hasDcoId))
-    dco_id = str(dco_id[0].label().toPython()) if dco_id else None
+    pubId = publication[publication.rfind('/pubid_') + 7:]
+    logging.info('pubid: %s', pubId)
+    doc = {"uri": publication, "name": title, "pubId": pubId}
 
-    is_dco_publication = list(pub.objects(DCO.isContributionToDCO))
-    is_dco_publication = True if is_dco_publication and is_dco_publication[0].toPython() == "YES" else False
-
-    doc = {"uri": publication, "title": title, "dcoId": dco_id, "isDcoPublication": is_dco_publication}
-
-    doi = list(pub.objects(BIBO.doi))
+    doi = list(pub.objects(predicate=BIBO.doi))
     doi = doi[0].toPython() if doi else None
+    ams = 0
     if doi:
         doc.update({"doi": doi})
+        ams = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
+    doc.update({"amscore": ams})
 
-    abstract = list(pub.objects(BIBO.abstract))
-    abstract = abstract[0].toPython() if abstract else None
+    abstract = list(pub.objects(predicate=BIBO.abstract))
+    abstract = abstract[0].encode('utf-8') if abstract else None
     if abstract:
         doc.update({"abstract": abstract})
 
@@ -110,156 +213,102 @@ def create_publication_doc(publication, endpoint):
     if most_specific_type:
         doc.update({"mostSpecificType": most_specific_type})
 
-    publication_year = list(pub.objects(DCO.yearOfPublication))
-    publication_year = publication_year[0] if publication_year else None
-    if publication_year:
-        doc.update({"publicationYear": str(publication_year)})
+    date_time_object = list(pub.objects(predicate=VIVO.dateTimeValue))
+    date_time_object = date_time_object[0] if date_time_object else None
+    if date_time_object is not None:
+       date_time = list(date_time_object.objects(predicate=VIVO.dateTime))
+       date_time = date_time[0] if date_time else None
+       logging.debug("date: %s",str(date_time)[:10])
+       logging.debug("year: %s",str(date_time)[:4])
+       publication_date = str(date_time)[:10]
+       publication_year = str(date_time)[:4]
 
-    dco_community = list(pub.objects(DCO.associatedDCOCommunity))
-    dco_community = dco_community[0] if dco_community else None
-    if dco_community and dco_community.label():
-        doc.update({"community": {"uri": str(dco_community.identifier), "name": dco_community.label().toPython()}})
-    elif dco_community:
-        print("community label missing:", str(dco_community.identifier))
-
-    dco_team = list(pub.objects(DCO.associatedDCOTeam))
-    dco_team = dco_team[0] if dco_team else None
-    if dco_team and dco_team.label():
-        doc.update({"team": {"uri": str(dco_team.identifier), "name": dco_team.label().toPython()}})
-    elif dco_team:
-        print("team label missing:", str(dco_team.identifier))
-
-    event = list(pub.objects(BIBO.presentedAt))
-    event = event[0] if event else None
-    if event and event.label():
-        doc.update({"presentedAt": {"uri": str(event.identifier), "name": event.label().toPython()}})
-    elif event:
-        print("event missing label:", str(event.identifier))
+       doc.update({"publicationDate": publication_date})
+       doc.update({"publicationYear": publication_year})
 
     venue = list(pub.objects(VIVO.hasPublicationVenue))
     venue = venue[0] if venue else None
     if venue and venue.label():
-        doc.update({"publishedIn": {"uri": str(venue.identifier), "name": venue.label().toPython()}})
+        doc.update({"publishedIn": {"uri": str(venue.identifier), "name": venue.label().encode('utf8')}})
     elif venue:
         print("venue missing label:", str(venue.identifier))
 
-    subject_areas = []
-    for subject_area in pub.objects(VIVO.hasSubjectArea):
-        sa = {"uri": str(subject_area.identifier)}
-        if subject_area.label():
-            sa.update({"name": subject_area.label().toPython()})
-        subject_areas.append(sa)
-
-    if subject_areas:
-        doc.update({"subjectArea": subject_areas})
-
     authors = []
-    authorships = [faux for faux in pub.objects(VIVO.relatedBy) if has_type(faux, VIVO.Authorship)]
-    for authorship in authorships:
+    for s, p, o in pubgraph.triples((None, VIVO.relates, None)):
+       for a, b, c in g1.triples((o, RDF.type, FOAF.Person)):
+          gx = Graph()
+          gx += g1.triples((a, None, None))
+          name = (gx.label(a))
+          obj = {"uri": a, "name": name}
+          per = g1.resource(a)
 
-        author = [person for person in authorship.objects(VIVO.relates) if has_type(person, FOAF.Person)][0]
-        name = author.label().toPython() if author else None
+          orcid = get_orcid(per)
+          if orcid:
+              obj.update({"orcid": orcid})
 
-        obj = {"uri": str(author.identifier), "name": name}
+          organizations = get_organizations(per)
+          if organizations:
+            obj.update({"organization": organizations})
 
-        rank = list(authorship.objects(VIVO.rank))
-        rank = rank[0].toPython() if rank else None
-        if rank:
-            obj.update({"rank": rank})
-
-        research_areas = [research_area.label().toPython() for research_area in author.objects(VIVO.hasResearchArea) if research_area.label()]
-
-        if research_areas:
+          research_areas = get_research_areas(per)
+          if research_areas:
             obj.update({"researchArea": research_areas})
 
-        org = list(author.objects(DCO.inOrganization))
-        org = org[0] if org else None
-        if org and org.label():
-            obj.update({"organization": {"uri": str(org.identifier), "name": org.label().toPython()}})
-
-        authors.append(obj)
-
-    try:
-        authors = sorted(authors, key=lambda a: a["rank"]) if len(authors) > 1 else authors
-    except KeyError:
-        print("missing rank for one or more authors of:", publication)
+          authors.append(obj)
 
     doc.update({"authors": authors})
 
+    logging.debug('Publication doc: %s', doc)
+    #DEBUGS #pdb.set_trace()
     return doc
 
-
-def has_type(resource, type):
-    for rtype in resource.objects(RDF.type):
-        if str(rtype.identifier) == str(type):
-            return True
-    return False
-
-
-def publish(bulk, endpoint, rebuild, mapping):
-    # if configured to rebuild_index
-    # Delete and then re-create to publication index (via PUT request)
-
-    index_url = endpoint + "/" + _index
-
-    if rebuild:
-        requests.delete(index_url)
-        r = requests.put(index_url)
-        if r.status_code != requests.codes.ok:
-            print(r.url, r.status_code)
-            r.raise_for_status()
-
-    # push current publication document mapping
-
-    mapping_url = index_url + "/" + _type + "/_mapping"
-    with open(mapping) as mapping_file:
-        r = requests.put(mapping_url, data=mapping_file)
-        if r.status_code != requests.codes.ok:
-
-            # new mapping may be incompatible with previous
-            # delete current mapping and re-push
-
-            requests.delete(mapping_url)
-            r = requests.put(mapping_url, data=mapping_file)
-            if r.status_code != requests.codes.ok:
-                print(r.url, r.status_code)
-                r.raise_for_status()
-
-    # bulk import new publication documents
-    bulk_import_url = endpoint + "/_bulk"
-    r = requests.post(bulk_import_url, data=bulk)
-    if r.status_code != requests.codes.ok:
-        print(r.url, r.status_code)
-        r.raise_for_status()
-
+def process_publication(publication, endpoint='http://localhost:2020/ds/sparql'):
+    pid = str(os.getpid())
+    logfile = args.spooldir + '/log-' + pid
+    idxfile = args.spooldir + '/idx-' + pid
+    fidx=open(idxfile, 'a+')
+    logging.info('Processing Publication: %s', publication)
+    if publication.find("pubid_") == -1:
+       logging.info('INVALID PUBLICATION: %s', publication) 
+       return []
+    pubgraph = Graph()
+    pubgraph += g1.triples((publication, None, None))
+    for o in pubgraph.objects(predicate=VIVO.relatedBy):
+        pubgraph += g1.triples((o, None, None))
+        pub = create_publication_doc(pubgraph=pubgraph, publication=publication)
+        es_id = pub["pubId"] if "pubId" in pub and pub["pubId"] is not None else pub["uri"]
+        logging.debug('es_id: %s', es_id)
+    record = [json.dumps(get_metadata(es_id)), json.dumps(pub)]
+    fidx.write('\n'.join(record) + "\n")
+    return [json.dumps(get_metadata(es_id)), json.dumps(pub)]
+    fidx.close()
 
 def generate(threads, sparql):
     pool = multiprocessing.Pool(threads)
-    params = [(publication, sparql) for publication in get_publications(endpoint=sparql)]
-    return list(itertools.chain.from_iterable(pool.starmap(process_publication, params)))
+    params = [pub for pub in g1.subjects(RDF.type, BIBO.Document)]
+    print("params: ", params)
+    return list(chain.from_iterable(pool.map(process_publication, params)))
 
+get_orgs_query = load_file("queries/listOrgs.rq")
+get_subjects_query = load_file("queries/listSubjects.rq")
+get_author_query = load_file("queries/listAuthors.rq")
+get_pub_query = load_file("queries/listPubs.rq")
+
+g1 += describe(endpoint,get_orgs_query)
+g1 = g1 + describe(endpoint,get_subjects_query)
+g1 = g1 + describe(endpoint,get_author_query)
+g1 = g1 + describe(endpoint,get_pub_query)
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
-    parser.add_argument('--es', default="http://data.deepcarbon.net/es", help="elasticsearch service URL")
-    parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
-    parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
-    parser.add_argument('--mapping', default="mappings/publication.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://deepcarbon.tw.rpi.edu:3030/VIVO/query', help='sparql endpoint')
+    parser.add_argument('--threads', default=12, help='number of threads to use (default = 6)')
+    parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--spooldir', default='./spool', help='where to write files')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
-
     args = parser.parse_args()
 
-    # generate bulk import document for publications
     records = generate(threads=int(args.threads), sparql=args.sparql)
-
-    # save generated bulk import file so it can be backed up or reviewed if there are publish errors
+    print "generated records"
     with open(args.out, "w") as bulk_file:
-        bulk_file.write('\n'.join(records)+'\n')
+        bulk_file.write('\n'.join(records))
 
-    # publish the results to elasticsearch if "--publish" was specified on the command line
-    if args.publish:
-        bulk_str = '\n'.join(records)+'\n'
-        publish(bulk=bulk_str, endpoint=args.es, rebuild=args.rebuild, mapping=args.mapping)
