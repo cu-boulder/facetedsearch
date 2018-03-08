@@ -26,7 +26,7 @@
     <script type="text/javascript">
         jQuery(document).ready(function($) {
             $('.facet-view-simple').facetview({
-                search_url: '/es/fis/publication/_search',
+                search_url: '/es/fispubs-v1/publication/_search',
                 page_size: 20,
                 sort: [{"publicationYear" : {"order" : "desc"}}],
                 sharesave_link: true,
@@ -40,15 +40,17 @@
                     {'field': 'authors.name.exact', 'size': 20, 'display': 'Author'},
                     {'field': 'publishedIn.name.exact', 'display': 'Published In'},
                     {'field': 'publicationYear', 'display': 'Year Published', 'sort':'desc', "size" : 25},
-                    {'field': 'amscore', 'display': 'Altmetrics Score', 'sort':'desc', "size" : 25},
+                    //{'field': 'amscore', 'display': 'Altmetrics Exact', 'sort':'desc', "size" : 25},
                     //{"field": "publicationYear", "display": "Publication Year", "type" : "date_histogram", "open" : false,"sort":"desc", "size" : 25},
-                    //{'field': 'authors.organization.name.exact', 'display': 'Author Organization'},
-                    //{'field': 'authors.researchArea.exact', 'display': 'Author Research Area'},
+                    {'field': 'authors.organization.name.exact', 'display': 'Author Organization'},
+                    {'field': 'authors.researchArea.name.exact', 'display': 'Author Research Area'},
+		    //{'field': 'amscore', 'display': 'Altmetric Range', "type" : "range", "range" : [{"to" : 0.001, "display" : "0 or no value"}, {"from" : 0.001, "to" : 1, "display" : "0-1"},{"from" : 1, "to" : 100, "display" : "1 - 99"}, {"from" : 100, "to" : 500, "display" : "100 - 500"}, {"from" : 500, "display" : "500+"}], 'sort':'desc', "size" : 25},
+		    {'field': 'amscore', 'display': 'Altmetric Range', "type" : "range", "range" : [{"to" : 0.001, "display" : "0 or no value"}, {"from" : 0.001, "to" :  100, "display" : "1 - 99"}, {"from" : 100, "to" : 500, "display" : "100 - 499"}, {"from" : 500, "display" : "500+"}], 'sort':'desc', "size" : 25},
                 ],
                 search_sortby: [
                     {'display':'Title','field':'title.exact'},
                     {'display':'Date','field':'publicationDate'},
-                    {'display':'Altmetric Score','field':'amscore'}
+                    {'display':'Altmetric Attention','field':'amscore'}
                 ],
                 render_result_record: function(options, record)
                 {
@@ -111,16 +113,9 @@
                         html += "<br /><span><a href=\""+doiUrl+"\" target=\"_blank\"><img src=" + doiBadgeURL + "></a></span>";
                     } 
 
-                    //html += "<br />";
-                   html += "<div class='altmetric-embed' data-hide-no-mentions='true' data-badge-popover='left' data-doi=\""+record["doi"]+"\"></div>"
-                   // html += "<br />";
+                   html += "<div class='altmetric-embed' data-link-target='_blank' data-hide-no-mentions='true' data-badge-popover='left' data-doi=\""+record["doi"]+"\"></div>"
 
                     html += "</div>"
-
-
-//                    var escapedDCOId= encodeURIComponent(record["PubId"]);
- //                   html += "<a href=\"https://dx.deepcarbon.net/"+record["PubId"]+"\" target=\"_blank\"><img style='vertical-align: middle' src='//dcotest.tw.rpi.edu/badges/badge?title=metadata&text="+escapedDCOId+"&color=D14719'/></a>";
-//
 
                     html += "</td></tr>";
                     return html;
