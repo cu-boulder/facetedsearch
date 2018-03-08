@@ -104,8 +104,6 @@ def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
         if r.status_code == 200:
             try:
                 json = r.json()
-#                time.sleep(1)
-                # print(json['score'])
                 return json['score']
             except ValueError:
                 logging.exception("Could not parse Altmetric response. ")
@@ -181,20 +179,16 @@ def describe(endpoint, query):
         pass
 
 def create_publication_doc(pubgraph,publication):
-#def create_publication_doc(publication, endpoint):
 
     pub = g1.resource(publication)
 
     try:
-        #title = str(pub.label().encode('utf-8'))
         title = pubgraph.label(publication,"default title")
         logging.info('title: %s', title)
     except AttributeError:
         print("missing title:", publication)
         return {}
 
-
-#    pubId = get_pubid(pub)
     pubId = publication[publication.rfind('/pubid_') + 7:]
     logging.info('pubid: %s', pubId)
     doc = {"uri": publication, "name": title, "pubId": pubId}
@@ -208,30 +202,21 @@ def create_publication_doc(pubgraph,publication):
     doc.update({"amscore": ams})
 
     abstract = list(pub.objects(predicate=BIBO.abstract))
-    #abstract = abstract[0].encode('utf-8').toPython() if abstract else None
     abstract = abstract[0].encode('utf-8') if abstract else None
     if abstract:
         doc.update({"abstract": abstract})
 
     most_specific_type = list(pub.objects(VITRO.mostSpecificType))
-#    print("most specific type : ", most_specific_type)
     most_specific_type = most_specific_type[0].label().toPython() \
         if most_specific_type and most_specific_type[0].label() \
         else None
     if most_specific_type:
         doc.update({"mostSpecificType": most_specific_type})
 
-#    most_specific_type = list(pub.objects(predicate=VITRO.mostSpecificType))[0]
-#    print("most specific type : ", most_specific_type)
-#    most_specific_type = g1.label(most_specific_type).encode('utf-8') if most_specific_type else None
-#    doc.update({"mostSpecificType": most_specific_type})
-
     date_time_object = list(pub.objects(predicate=VIVO.dateTimeValue))
     date_time_object = date_time_object[0] if date_time_object else None
     if date_time_object is not None:
        date_time = list(date_time_object.objects(predicate=VIVO.dateTime))
-       #date_time = list(g1.objects(date_time_object,VIVO.dateTime))
-       #DREdate_time = str(g1.value(date_time_object,VIVO.dateTime).toPython())
        date_time = date_time[0] if date_time else None
        logging.debug("date: %s",str(date_time)[:10])
        logging.debug("year: %s",str(date_time)[:4])
@@ -241,26 +226,20 @@ def create_publication_doc(pubgraph,publication):
        doc.update({"publicationDate": publication_date})
        doc.update({"publicationYear": publication_year})
 
-#DRE    venue = pub.value(publication,VIVO.hasPublicationVenue)
-# DRE   venue_label = g1.label(venue).encode('utf-8')
     venue = list(pub.objects(VIVO.hasPublicationVenue))
     venue = venue[0] if venue else None
     if venue and venue.label():
-        #doc.update({"publishedIn": {"uri": str(venue.identifier), "name": venue.label().toPython()}})
         doc.update({"publishedIn": {"uri": str(venue.identifier), "name": venue.label().encode('utf8')}})
     elif venue:
         print("venue missing label:", str(venue.identifier))
 
     authors = []
-#    authorships = [faux for faux in pub.objects(VIVO.relatedBy) if has_type(faux, VIVO.Authorship)]
-#    for authorship in authorships:
     for s, p, o in pubgraph.triples((None, VIVO.relates, None)):
        for a, b, c in g1.triples((o, RDF.type, FOAF.Person)):
           gx = Graph()
           gx += g1.triples((a, None, None))
           name = (gx.label(a))
           obj = {"uri": a, "name": name}
-
           per = g1.resource(a)
 
           orcid = get_orcid(per)
@@ -275,41 +254,18 @@ def create_publication_doc(pubgraph,publication):
           if research_areas:
             obj.update({"researchArea": research_areas})
 
-
-#        author = [person for person in authorship.objects(VIVO.relates) if has_type(person, FOAF.Person)][0]
-#        name = author.label().toPython() if author else None
-
-#        obj = {"uri": str(author.identifier), "name": name}
-
-#        rank = list(authorship.objects(VIVO.rank))
-#        rank = rank[0].toPython() if rank else None
-#        if rank:
-#            obj.update({"rank": rank})
-
-#        research_areas = [research_area.label().toPython() for research_area in author.objects(VIVO.hasResearchArea) if research_area.label()]
-#        print("research area: ", research_areas)
-
-#        if research_areas:
-#            obj.update({"researchArea": research_areas})
-
           authors.append(obj)
-
-#    try:
-#        authors = sorted(authors, key=lambda a: a["rank"]) if len(authors) > 1 else authors
-#    except KeyError:
-#        print("missing rank for one or more authors of:", publication)
 
     doc.update({"authors": authors})
 
     logging.debug('Publication doc: %s', doc)
-    #pdb.set_trace()
+    #DEBUGS #pdb.set_trace()
     return doc
 
 def process_publication(publication, endpoint='http://localhost:2020/ds/sparql'):
     pid = str(os.getpid())
     logfile = args.spooldir + '/log-' + pid
     idxfile = args.spooldir + '/idx-' + pid
- #   f1=open(logfile, 'a+')
     fidx=open(idxfile, 'a+')
     logging.info('Processing Publication: %s', publication)
     if publication.find("pubid_") == -1:
@@ -322,23 +278,13 @@ def process_publication(publication, endpoint='http://localhost:2020/ds/sparql')
         pub = create_publication_doc(pubgraph=pubgraph, publication=publication)
         es_id = pub["pubId"] if "pubId" in pub and pub["pubId"] is not None else pub["uri"]
         logging.debug('es_id: %s', es_id)
- #       f1.writelines(pub)
- #       f1.write(' ')
-        #pub = create_publication_doc(publication=publication, endpoint=endpoint)
-        #es_id = pub["pubId"] if "pubId" in pub and pub["pubId"] is not None else pub["uri"]
-        #es_id = get_id(es_id)
     record = [json.dumps(get_metadata(es_id)), json.dumps(pub)]
-    #fidx.writelines([json.dumps(get_metadata(es_id)), json.dumps(pub)])
     fidx.write('\n'.join(record) + "\n")
     return [json.dumps(get_metadata(es_id)), json.dumps(pub)]
     fidx.close()
- #   f1.close()
-
-
 
 def generate(threads, sparql):
     pool = multiprocessing.Pool(threads)
-    #params = [pub for pub in get_pubs(endpoint=sparql)]
     params = [pub for pub in g1.subjects(RDF.type, BIBO.Document)]
     print("params: ", params)
     return list(chain.from_iterable(pool.map(process_publication, params)))
@@ -361,33 +307,8 @@ if __name__ == "__main__":
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
     args = parser.parse_args()
 
-
-#    f1=open('./pubgraph', 'w+')
-#    idxfile=open(args.out, 'w+')
-
-
     records = generate(threads=int(args.threads), sparql=args.sparql)
     print "generated records"
     with open(args.out, "w") as bulk_file:
         bulk_file.write('\n'.join(records))
 
-
-#for publication in g1.subjects(RDF.type, BIBO.Document):
-#    pubgraph = Graph()
-#    pubgraph += g1.triples((publication, None, None))
-#    for o in pubgraph.objects(predicate=VIVO.relatedBy):
-#        pubgraph += g1.triples((o, None, None))
-#        pub = create_publication_doc(pubgraph=pubgraph, publication=publication)
-#        es_id = pub["pubId"] if "pubId" in pub and pub["pubId"] is not None else pub["uri"]
-#        logging.debug('es_id: %s', es_id)
-#        #print [json.dumps(get_metadata(es_id)), json.dumps(pub)]
-#        print json.dumps(get_metadata(es_id))
-#        print json.dumps(pub)
-#        print >> idxfile, json.dumps(get_metadata(es_id))
-#        print >> idxfile, json.dumps(pub)
-
-
-#    print(pub)
-
-#f1.close()
-#idxfile.close()
