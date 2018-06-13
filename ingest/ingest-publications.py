@@ -21,7 +21,7 @@ if '-dev' in SYSTEM_NAME:
 else:
    BASE_URL = 'https://experts.colorado.edu/individual'
 
-ALTMETRIC_API_KEY = 'b7850a6cae053643e3f5f4514569a2ad'
+ALTMETRIC_API_KEY = 'key'
 
 PROV = Namespace("http://www.w3.org/ns/prov#")
 BIBO = Namespace("http://purl.org/ontology/bibo/")
