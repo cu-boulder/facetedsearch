@@ -20,3 +20,4 @@ done
 sleep 10
 echo "Index counts after run" >> $outfile
 ./idx_get_count.sh $indexname >> $outfile 2>&1
+python get_index_status.py
