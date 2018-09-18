@@ -155,7 +155,8 @@ def get_organizations(person):
 
 
 def get_metadata(id):
-    return {"index": {"_index": "fispubs-v1", "_type": "publication", "_id": id}}
+    #return {"index": {"_index": "fispubs-v1", "_type": "publication", "_id": id}}
+    return {"index": {"_index": index, "_type": "publication", "_id": id}}
 
 def has_type(resource, type):
     for rtype in resource.objects(predicate=RDF.type):
@@ -304,9 +305,11 @@ if __name__ == "__main__":
     parser.add_argument('--threads', default=12, help='number of threads to use (default = 6)')
     parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('--spooldir', default='./spool', help='where to write files')
+    parser.add_argument('--index', default='fispubs', help='name of the index. Default=fispubs')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
     args = parser.parse_args()
 
+    index=args.index
     records = generate(threads=int(args.threads), sparql=args.sparql)
     print "generated records"
     with open(args.out, "w") as bulk_file:
