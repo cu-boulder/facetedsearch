@@ -21,7 +21,7 @@ if '-dev' in SYSTEM_NAME:
 else:
    BASE_URL = 'https://experts.colorado.edu/individual'
 
-ALTMETRIC_API_KEY = 'key'
+ALTMETRIC_API_KEY = 'b7850a6cae053643e3f5f4514569a2ad'
 
 PROV = Namespace("http://www.w3.org/ns/prov#")
 BIBO = Namespace("http://purl.org/ontology/bibo/")
@@ -35,6 +35,7 @@ FIS_LOCAL = Namespace("https://experts.colorado.edu/ontology/vivo-fis#")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 FIS = Namespace("https://experts.colorado.edu/individual")
 NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
+PUBS = Namespace("https://experts.colorado.edu/ontology/pubs#")
 
 endpoint='http://localhost:2020/ds/sparql'
 
@@ -100,7 +101,12 @@ def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
         query = ('http://api.altmetric.com/v1/doi/' + doi + '?key=' +
                  ALTMETRIC_API_KEY)
 
-        r = requests.get(query)
+        try:
+           r = requests.get(query)
+        except requests.exceptions.RequestException as e:  # This is the correct syntax
+           print e
+           return None
+
         if r.status_code == 200:
             try:
                 json = r.json()
@@ -155,7 +161,8 @@ def get_organizations(person):
 
 
 def get_metadata(id):
-    return {"index": {"_index": "fispubs-v1", "_type": "publication", "_id": id}}
+    #return {"index": {"_index": "fispubs-v1", "_type": "publication", "_id": id}}
+    return {"index": {"_index": index, "_type": "publication", "_id": id}}
 
 def has_type(resource, type):
     for rtype in resource.objects(predicate=RDF.type):
@@ -205,6 +212,36 @@ def create_publication_doc(pubgraph,publication):
     abstract = abstract[0].encode('utf-8') if abstract else None
     if abstract:
         doc.update({"abstract": abstract})
+
+    pageEnd = list(pub.objects(predicate=BIBO.pageEnd))
+    pageEnd = pageEnd[0].encode('utf-8') if pageEnd else None
+    if pageEnd:
+        doc.update({"pageEnd": pageEnd})
+
+    pageStart = list(pub.objects(predicate=BIBO.pageStart))
+    pageStart = pageStart[0].encode('utf-8') if pageStart else None
+    if pageStart:
+        doc.update({"pageStart": pageStart})
+
+    issue = list(pub.objects(predicate=BIBO.issue))
+    issue = issue[0].encode('utf-8') if issue else None
+    if issue:
+        doc.update({"issue": issue})
+
+    numPages = list(pub.objects(predicate=BIBO.numPages))
+    numPages = numPages[0].encode('utf-8') if numPages else None
+    if numPages:
+        doc.update({"numPages": numPages})
+
+    volume = list(pub.objects(predicate=BIBO.volume))
+    volume = volume[0].encode('utf-8') if volume else None
+    if volume:
+        doc.update({"volume": volume})
+
+    citedAuthors = list(pub.objects(predicate=PUBS.citedAuthors))
+    citedAuthors = citedAuthors[0].encode('utf-8') if citedAuthors else None
+    if citedAuthors:
+        doc.update({"citedAuthors": citedAuthors})
 
     most_specific_type = list(pub.objects(VITRO.mostSpecificType))
     most_specific_type = most_specific_type[0].label().toPython() \
@@ -304,9 +341,11 @@ if __name__ == "__main__":
     parser.add_argument('--threads', default=12, help='number of threads to use (default = 6)')
     parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('--spooldir', default='./spool', help='where to write files')
+    parser.add_argument('--index', default='fispubs', help='name of the index. Default=fispubs')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
     args = parser.parse_args()
 
+    index=args.index
     records = generate(threads=int(args.threads), sparql=args.sparql)
     print "generated records"
     with open(args.out, "w") as bulk_file:
