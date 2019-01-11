@@ -13,6 +13,11 @@ import urllib
 import pdb   # Debugging purposes - comment out for production
 import socket
 
+# import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
+# Also eventually can put more config info in here
+from vivoapipw import *
+
+
 class Maybe:
     def __init__(self, v=None):
         self.value = v
@@ -108,9 +113,16 @@ def get_id(fis_id):
     return fis_id
 
 def select(endpoint, query):
+    print("endpoint: ", endpoint)
+    print("EMAIL: ", EMAIL)
+    print("PASSWORD: ", PASSWORD)
+
     endpoint = endpoint
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
+    sparql.setMethod("POST")
+    sparql.addParameter("email", EMAIL)
+    sparql.addParameter("password", PASSWORD)
     sparql.setReturnFormat(JSON)
     results = sparql.query().convert()
     return results["results"]["bindings"]
@@ -119,12 +131,19 @@ def select(endpoint, query):
 def describe(endpoint, query):
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
+    sparql.setMethod("POST")
+    sparql.addParameter("email", EMAIL)
+    sparql.addParameter("password", PASSWORD)
     try:
-        print ("Describe passed: ", query)
-        return sparql.query().convert()
+    #    print ("sparql query: ", sparql)
+        results = sparql.query().convert()
+    #    print ("Describe passed: ", query)
+        return results
     #except RuntimeWarning:
-    except:
-        print ("Describe ERROR: ", query)
+    except Exception as e:
+        print ("Describe ERROR: ", e)
+        error_message = e.read()
+        print error_message
         pass
 
 
@@ -348,7 +367,8 @@ def create_person_doc(person, endpoint):
     return doc
 
 
-def process_person(person, endpoint='http://localhost:2020/ds/sparql'):
+#def process_person(person, endpoint='http://localhost:2020/ds/sparql'):
+def process_person(person, endpoint='http://prometheus-dev:8180/vivo/api/sparqlQuery'):
     logging.info('Processing Person: %s', person)
     if person.find("fisid_") == -1:
        logging.info('INVALID PERSON: %s', person) 
@@ -416,7 +436,8 @@ if __name__ == "__main__":
     parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/person.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
+    #parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://prometheus-dev:8180/vivo/api/sparqlQuery', help='sparql endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()
