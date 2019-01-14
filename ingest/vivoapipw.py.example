@@ -1,0 +1,5 @@
+#Entries to access to vivo sparql update api
+# Copy this to vivoapipw.py and modify the entries
+EMAIL = 'someemail@somewhere.org'
+PASSWORD = 'yourtotallysecurepasswordgoeshere'
+INDEX = 'YOUR-ELASTIC-INDEX-USAGE-IS-TBD'
