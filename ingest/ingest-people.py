@@ -105,7 +105,7 @@ has_label = lambda o: True if o.label() else False
 
 
 def get_metadata(id):
-    return {"index": {"_index": "fis", "_type": "person", "_id": id}}
+    return {"index": {"_index": args.index, "_type": "person", "_id": id}}
 
 
 def get_id(fis_id):
@@ -124,8 +124,19 @@ def select(endpoint, query):
     sparql.addParameter("email", EMAIL)
     sparql.addParameter("password", PASSWORD)
     sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-    return results["results"]["bindings"]
+    try:
+        results = sparql.query().convert()
+        print("results: ", results)
+        return results["results"]["bindings"]
+    except EndPointInternalError:
+        try:
+            results = sparql.query().convert()
+            print("results: ", results)
+            return results["results"]["bindings"]
+        except RuntimeWarning:
+            pass
+    except RuntimeWarning:
+        pass
 
 
 def describe(endpoint, query):
@@ -367,13 +378,12 @@ def create_person_doc(person, endpoint):
     return doc
 
 
-#def process_person(person, endpoint='http://localhost:2020/ds/sparql'):
-def process_person(person, endpoint='http://prometheus-dev:8180/vivo/api/sparqlQuery'):
+def process_person(person):
     logging.info('Processing Person: %s', person)
     if person.find("fisid_") == -1:
        logging.info('INVALID PERSON: %s', person) 
        return []
-    per = create_person_doc(person=person, endpoint=endpoint)
+    per = create_person_doc(person=person, endpoint=sparqlendpoint)
     es_id = per["fisId"] if "fisId" in per and per["fisId"] is not None else per["uri"]
     es_id = get_id(es_id)
     return [json.dumps(get_metadata(es_id)), json.dumps(per)]
@@ -434,13 +444,14 @@ if __name__ == "__main__":
     parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
     parser.add_argument('--es', default="http://localhost:9200/", help="elasticsearch service URL")
     parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
+    parser.add_argument('--index', default='fis', help='name of index, needs to correlate with javascript library')
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/person.json", help="publication elasticsearch mapping document")
-    #parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
-    parser.add_argument('--sparql', default='http://prometheus-dev:8180/vivo/api/sparqlQuery', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()
+    sparqlendpoint=args.sparql
 
     # generate bulk import document for publications
     records = generate(threads=int(args.threads), sparql=args.sparql)

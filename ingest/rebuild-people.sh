@@ -1,22 +1,18 @@
 # get counts of index prior to deletion
+. ./vivoapipw.py
 dstamp=`date +%Y%m%d-%H%M%S`
 #dstamp="20190111-152317"
-indexname=fis
+#dstamp="20190117-171900"
+indexname=$PEOPLEINDEX
 mkdir spool/$dstamp
 outfile="spool/${dstamp}/rebuild-index.out"
-echo "CREATING ES DOCUMENTS" > $outfile
-python ./ingest-people.py spool/$dstamp/people.list   >> $outfile 2>&1
-#python ./ingest-equipment.py spool/$dstamp/equipment.list >> $outfile 2>&1
-#echo "Index counts prior to run" >> $outfile
-#./idx_get_count.sh >> $outfile
-./idx_get_count.sh $indexname >> $outfile
-exit
-curl -XDELETE localhost:9200/fis >> $outfile
-curl -XPUT localhost:9200/fis >> $outfile
-curl -XPUT 'localhost:9200/fis/person/_mapping?pretty' --data-binary @mappings/person.json >> $outfile
-curl -XPUT 'localhost:9200/fis/equipment/_mapping?pretty' --data-binary @mappings/equipment.json >> $outfile
-curl -XPOST 'localhost:9200/_bulk' --data-binary @spool/$dstamp/people.list >> $outfile 2>&1
-curl -XPOST 'localhost:9200/_bulk' --data-binary @spool/$dstamp/equipment.list >> $outfile 2>&1
+echo "CREATING ES DOCUMENTS" # > $outfile
+python ./ingest-people.py --index ${indexname} --sparql ${ENDPOINT} spool/$dstamp/people.list   #>> $outfile 2>&1
+./idx_get_count.sh ${indexname} #>> $outfile
+curl -XDELETE localhost:9200/${indexname} #>> $outfile
+curl -XPUT localhost:9200/${indexname} #>> $outfile
+curl -XPUT localhost:9200/${indexname}/person/_mapping?pretty --data-binary @mappings/person.json #>> $outfile
+curl -XPOST localhost:9200/_bulk --data-binary @spool/$dstamp/people.list #>> $outfile 2>&1
 sleep 10
-echo "Index counts after run" >> $outfile
-./idx_get_count.sh >> $outfile 2>&1
+echo "Index counts after run" #>> $outfile
+./idx_get_count.sh #>> $outfile 2>&1

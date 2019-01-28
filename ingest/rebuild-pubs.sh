@@ -1,11 +1,11 @@
-# get counts of index prior to deletion
-indexname=fispubs-v1
+. ./vivoapipw.py
+indexname=$PUBSINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
 outdir="spool/${dstamp}"
 mkdir $outdir
 outfile="${outdir}/rebuild-pubs.out"
 echo "CREATING ES DOCUMENTS" > $outfile
-python ./ingest-publications.py --index ${indexname} --spooldir ${outdir} ${outdir}/allpubs.idx  >> $outfile 2>&1
+python ./ingest-publications.py --index ${indexname} --sparql ${ENDPOINT} --spooldir ${outdir} ${outdir}/allpubs.idx  >> $outfile 2>&1
 echo "Index counts prior to run" >> $outfile
 ./idx_get_count.sh $indexname >> $outfile
 curl -XDELETE localhost:9200/${indexname} >> $outfile

@@ -1,5 +1,7 @@
 #Entries to access to vivo sparql update api
 # Copy this to vivoapipw.py and modify the entries
-EMAIL = 'someemail@somewhere.org'
-PASSWORD = 'yourtotallysecurepasswordgoeshere'
-INDEX = 'YOUR-ELASTIC-INDEX-USAGE-IS-TBD'
+EMAIL='my.email@yourschool.edu'
+PASSWORD='somecrazysecurepassword'
+ENDPOINT='http://yourschool.edu/vivo/api/sparqlQuery'
+PEOPLEINDEX='people'
+PUBSINDEX='pubs'
