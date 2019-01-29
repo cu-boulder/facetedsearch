@@ -10,9 +10,10 @@ PREFIX vitro-public: <http://vitro.mannlib.cornell.edu/ns/vitro/public#>
 PREFIX vivo: <http://vivoweb.org/ontology/core#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX bibo: <http://purl.org/ontology/bibo/>
+PREFIX pubs: <https://experts.colorado.edu/ontology/pubs#>
 
 CONSTRUCT
-{ 
+{
     ?publication a bibo:Document .
     ?publication vitro:mostSpecificType ?mostSpecificType .
     ?mostSpecificType rdfs:label ?typeLabel .
@@ -27,6 +28,12 @@ CONSTRUCT
     ?pubdateobj vivo:dateTime ?pubdatevalue .
     ?publication vivo:hasPublicationVenue ?venue .
     ?venue rdfs:label ?venueLabel .
+    ?publication bibo:pageEnd ?pageend .
+     ?publication bibo:pageStart ?pagestart .
+     ?publication bibo:issue ?issue .
+     ?publication bibo:numPages ?numpages .
+     ?publication bibo:volume ?volume .
+     ?publication pubs:citedAuthors ?authors .
 }
 WHERE
 {
@@ -39,6 +46,12 @@ WHERE
    ?authorship vivo:relates ?author .
    OPTIONAL { ?publication bibo:doi ?doi }
    OPTIONAL { ?publication bibo:abstract ?abstract }
+   OPTIONAL { ?publication bibo:pageEnd ?pageend }
+     OPTIONAL { ?publication bibo:pageStart ?pagestart }
+     OPTIONAL { ?publication bibo:issue ?issue }
+     OPTIONAL { ?publication bibo:numPages ?numpages }
+       OPTIONAL { ?publication bibo:volume ?volume }
+       OPTIONAL { ?publication pubs:citedAuthors ?authors  }
    OPTIONAL { ?publication vivo:dateTimeValue ?pubdateobj .
               ?pubdateobj vivo:dateTime ?pubdatevalue
             }
@@ -46,3 +59,4 @@ WHERE
               ?venue rdfs:label ?venueLabel
             }
 }
+

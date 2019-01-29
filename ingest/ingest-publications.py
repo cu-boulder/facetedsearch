@@ -27,9 +27,6 @@ if '-dev' in SYSTEM_NAME:
 else:
    BASE_URL = 'https://experts.colorado.edu/individual'
 
-# remove production key below prior to commit
-
-
 PROV = Namespace("http://www.w3.org/ns/prov#")
 BIBO = Namespace("http://purl.org/ontology/bibo/")
 VCARD = Namespace("http://www.w3.org/2006/vcard/ns#")
@@ -42,6 +39,7 @@ FIS_LOCAL = Namespace("https://experts.colorado.edu/ontology/vivo-fis#")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 FIS = Namespace("https://experts.colorado.edu/individual")
 NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
+PUBS = Namespace("https://experts.colorado.edu/ontology/pubs#")
 
 # standard filters
 non_empty_str = lambda s: True if s else False
@@ -228,6 +226,36 @@ def create_publication_doc(pubgraph,publication):
     abstract = abstract[0].encode('utf-8') if abstract else None
     if abstract:
         doc.update({"abstract": abstract})
+
+    pageEnd = list(pub.objects(predicate=BIBO.pageEnd))
+    pageEnd = pageEnd[0].encode('utf-8') if pageEnd else None
+    if pageEnd:
+        doc.update({"pageEnd": pageEnd})
+
+    pageStart = list(pub.objects(predicate=BIBO.pageStart))
+    pageStart = pageStart[0].encode('utf-8') if pageStart else None
+    if pageStart:
+        doc.update({"pageStart": pageStart})
+
+    issue = list(pub.objects(predicate=BIBO.issue))
+    issue = issue[0].encode('utf-8') if issue else None
+    if issue:
+        doc.update({"issue": issue})
+
+    numPages = list(pub.objects(predicate=BIBO.numPages))
+    numPages = numPages[0].encode('utf-8') if numPages else None
+    if numPages:
+        doc.update({"numPages": numPages})
+
+    volume = list(pub.objects(predicate=BIBO.volume))
+    volume = volume[0].encode('utf-8') if volume else None
+    if volume:
+        doc.update({"volume": volume})
+
+    citedAuthors = list(pub.objects(predicate=PUBS.citedAuthors))
+    citedAuthors = citedAuthors[0].encode('utf-8') if citedAuthors else None
+    if citedAuthors:
+        doc.update({"citedAuthors": citedAuthors})
 
     most_specific_type = list(pub.objects(VITRO.mostSpecificType))
     most_specific_type = most_specific_type[0].label().toPython() \

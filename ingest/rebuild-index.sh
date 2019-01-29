@@ -1,5 +1,7 @@
 # get counts of index prior to deletion
+indexname=fis
 dstamp=`date +%Y%m%d-%H%M%S`
+outdir="spool/${dstamp}"
 mkdir spool/$dstamp
 outfile="spool/${dstamp}/rebuild-index.out"
 echo "CREATING ES DOCUMENTS" > $outfile
@@ -16,3 +18,4 @@ curl -XPOST 'localhost:9200/_bulk' --data-binary @spool/$dstamp/equipment.list >
 sleep 10
 echo "Index counts after run" >> $outfile
 ./idx_get_count.sh >> $outfile 2>&1
+python get_index_status.py --index=$indexname
