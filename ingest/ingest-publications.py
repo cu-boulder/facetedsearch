@@ -27,9 +27,7 @@ if '-dev' in SYSTEM_NAME:
 else:
    BASE_URL = 'https://experts.colorado.edu/individual'
 
-ALTMETRIC_API_KEY = 'key'
 # remove production key below prior to commit
-ALTMETRIC_API_KEY = 'b7850a6cae053643e3f5f4514569a2ad'
 
 
 PROV = Namespace("http://www.w3.org/ns/prov#")
@@ -106,23 +104,29 @@ def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
         query = ('http://api.altmetric.com/v1/doi/' + doi + '?key=' +
                  ALTMETRIC_API_KEY)
 
-        r = requests.get(query)
-        if r.status_code == 200:
-            try:
+        try:
+           r = requests.get(query)
+           if r.status_code == 200:
+             try:
                 json = r.json()
                 return json['score']
-            except ValueError:
+             except ValueError:
                 logging.exception("Could not parse Altmetric response. ")
                 return None
-        elif r.status_code == 420:
-            logging.info("Rate limit in effect!!!!")
-            time.sleep(5)
-        elif r.status_code == 403:
-            logging.warn("Altmetric says you aren't authorized for this call.")
-            return None
-        else:
-            logging.debug("No altmetric record or API error. ")
-            return None
+             except ValueError:
+                logging.exception("Could not parse Altmetric response. ")
+                return None
+           elif r.status_code == 420:
+              logging.info("Rate limit in effect!!!!")
+              time.sleep(5)
+           elif r.status_code == 403:
+              logging.warn("Altmetric says you aren't authorized for this call.")
+              return None
+           else:
+              logging.debug("No altmetric record or API error. ")
+              return None
+        except:
+           logging.exception("Altmetric connection failure")
     else:
         return None
 
@@ -310,7 +314,7 @@ def generate(threads):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--threads', default=12, help='number of threads to use (default = 12)')
+    parser.add_argument('--threads', default=16, help='number of threads to use (default = 12)')
     parser.add_argument('--sparqlendpoint', default='http://yourhost:8780/vivo/api/sparqlQuery', help='sparql endpoint')
     parser.add_argument('--spooldir', default='./spool', help='where to write files')
     parser.add_argument('--index', default='fis-pubs-setup', help='name of index, needs to correlate with javascript library')
