@@ -447,7 +447,7 @@ if __name__ == "__main__":
     parser.add_argument('--index', default='fis', help='name of index, needs to correlate with javascript library')
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/person.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://localtomcathost:8780/vivo/api/sparqlQuery', help='local tomcat host and port for VIVO sparql query API endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()

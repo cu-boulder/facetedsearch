@@ -343,7 +343,7 @@ def generate(threads):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--threads', default=16, help='number of threads to use (default = 12)')
-    parser.add_argument('--sparqlendpoint', default='http://yourhost:8780/vivo/api/sparqlQuery', help='sparql endpoint')
+    parser.add_argument('--sparqlendpoint', default='http://localtomcathost:8780/vivo/api/sparqlQuery', help='local tomcat host and port for VIVO sparql query API endpoint')
     parser.add_argument('--spooldir', default='./spool', help='where to write files')
     parser.add_argument('--index', default='fis-pubs-setup', help='name of index, needs to correlate with javascript library')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
