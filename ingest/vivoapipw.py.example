@@ -1,5 +1,6 @@
 #Entries to access to vivo sparql update api
 # Copy this to vivoapipw.py and modify the entries
+# This file is used by both the bash shell scripts and the python ingest scripts
 EMAIL='my.email@yourschool.edu'
 PASSWORD='somecrazysecurepassword'
 ENDPOINT='http://yourschool.edu/vivo/api/sparqlQuery'

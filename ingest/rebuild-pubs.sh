@@ -1,3 +1,5 @@
+
+# Read environment variables. This file is used by both the bash shell scripts and the python ingest scripts
 . ./vivoapipw.py
 indexname=$PUBSINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
