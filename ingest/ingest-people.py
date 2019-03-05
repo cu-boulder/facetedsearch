@@ -13,6 +13,11 @@ import urllib
 import pdb   # Debugging purposes - comment out for production
 import socket
 
+# import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
+# Also eventually can put more config info in here
+from vivoapipw import *
+
+
 class Maybe:
     def __init__(self, v=None):
         self.value = v
@@ -100,7 +105,7 @@ has_label = lambda o: True if o.label() else False
 
 
 def get_metadata(id):
-    return {"index": {"_index": "fis", "_type": "person", "_id": id}}
+    return {"index": {"_index": args.index, "_type": "person", "_id": id}}
 
 
 def get_id(fis_id):
@@ -108,23 +113,48 @@ def get_id(fis_id):
     return fis_id
 
 def select(endpoint, query):
+    print("endpoint: ", endpoint)
+    print("EMAIL: ", EMAIL)
+    print("PASSWORD: ", PASSWORD)
+
     endpoint = endpoint
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
+    sparql.setMethod("POST")
+    sparql.addParameter("email", EMAIL)
+    sparql.addParameter("password", PASSWORD)
     sparql.setReturnFormat(JSON)
-    results = sparql.query().convert()
-    return results["results"]["bindings"]
+    try:
+        results = sparql.query().convert()
+        print("results: ", results)
+        return results["results"]["bindings"]
+    except EndPointInternalError:
+        try:
+            results = sparql.query().convert()
+            print("results: ", results)
+            return results["results"]["bindings"]
+        except RuntimeWarning:
+            pass
+    except RuntimeWarning:
+        pass
 
 
 def describe(endpoint, query):
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
+    sparql.setMethod("POST")
+    sparql.addParameter("email", EMAIL)
+    sparql.addParameter("password", PASSWORD)
     try:
-        print ("Describe passed: ", query)
-        return sparql.query().convert()
+    #    print ("sparql query: ", sparql)
+        results = sparql.query().convert()
+    #    print ("Describe passed: ", query)
+        return results
     #except RuntimeWarning:
-    except:
-        print ("Describe ERROR: ", query)
+    except Exception as e:
+        print ("Describe ERROR: ", e)
+        error_message = e.read()
+        print error_message
         pass
 
 
@@ -348,12 +378,12 @@ def create_person_doc(person, endpoint):
     return doc
 
 
-def process_person(person, endpoint='http://localhost:2020/ds/sparql'):
+def process_person(person):
     logging.info('Processing Person: %s', person)
     if person.find("fisid_") == -1:
        logging.info('INVALID PERSON: %s', person) 
        return []
-    per = create_person_doc(person=person, endpoint=endpoint)
+    per = create_person_doc(person=person, endpoint=sparqlendpoint)
     es_id = per["fisId"] if "fisId" in per and per["fisId"] is not None else per["uri"]
     es_id = get_id(es_id)
     return [json.dumps(get_metadata(es_id)), json.dumps(per)]
@@ -414,12 +444,14 @@ if __name__ == "__main__":
     parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
     parser.add_argument('--es', default="http://localhost:9200/", help="elasticsearch service URL")
     parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
+    parser.add_argument('--index', default='fis', help='name of index, needs to correlate with javascript library')
     parser.add_argument('--rebuild', default=False, action="store_true", help="rebuild elasticsearch index?")
     parser.add_argument('--mapping', default="mappings/person.json", help="publication elasticsearch mapping document")
-    parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--sparql', default='http://localtomcathost:8780/vivo/api/sparqlQuery', help='local tomcat host and port for VIVO sparql query API endpoint')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
 
     args = parser.parse_args()
+    sparqlendpoint=args.sparql
 
     # generate bulk import document for publications
     records = generate(threads=int(args.threads), sparql=args.sparql)

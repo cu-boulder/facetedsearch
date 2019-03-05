@@ -13,15 +13,19 @@ import socket
 import time
 import os
 
+# import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
+# Also eventually can put more config info in here
+from vivoapipw import *
+
 g1 = Graph()
 
+# This was used to create weblinks from facetview to VIVO. 
+# TODO: parameterize the URL for the target link, this can accomodate all of our VIVO instances
 SYSTEM_NAME = socket.gethostname()
 if '-dev' in SYSTEM_NAME:
    BASE_URL = 'https://vivo-cub-dev.colorado.edu/individual'
 else:
    BASE_URL = 'https://experts.colorado.edu/individual'
-
-ALTMETRIC_API_KEY = 'b7850a6cae053643e3f5f4514569a2ad'
 
 PROV = Namespace("http://www.w3.org/ns/prov#")
 BIBO = Namespace("http://purl.org/ontology/bibo/")
@@ -37,12 +41,9 @@ FIS = Namespace("https://experts.colorado.edu/individual")
 NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
 PUBS = Namespace("https://experts.colorado.edu/ontology/pubs#")
 
-endpoint='http://localhost:2020/ds/sparql'
-
 # standard filters
 non_empty_str = lambda s: True if s else False
 has_label = lambda o: True if o.label() else False
-
 
 class Maybe:
     def __init__(self, v=None):
@@ -103,26 +104,27 @@ def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
 
         try:
            r = requests.get(query)
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
-           print e
-           return None
-
-        if r.status_code == 200:
-            try:
+           if r.status_code == 200:
+             try:
                 json = r.json()
                 return json['score']
-            except ValueError:
+             except ValueError:
                 logging.exception("Could not parse Altmetric response. ")
                 return None
-        elif r.status_code == 420:
-            logging.info("Rate limit in effect!!!!")
-            time.sleep(5)
-        elif r.status_code == 403:
-            logging.warn("Altmetric says you aren't authorized for this call.")
-            return None
-        else:
-            logging.debug("No altmetric record or API error. ")
-            return None
+             except ValueError:
+                logging.exception("Could not parse Altmetric response. ")
+                return None
+           elif r.status_code == 420:
+              logging.info("Rate limit in effect!!!!")
+              time.sleep(5)
+           elif r.status_code == 403:
+              logging.warn("Altmetric says you aren't authorized for this call.")
+              return None
+           else:
+              logging.debug("No altmetric record or API error. ")
+              return None
+        except:
+           logging.exception("Altmetric connection failure")
     else:
         return None
 
@@ -161,8 +163,7 @@ def get_organizations(person):
 
 
 def get_metadata(id):
-    #return {"index": {"_index": "fispubs-v1", "_type": "publication", "_id": id}}
-    return {"index": {"_index": index, "_type": "publication", "_id": id}}
+    return {"index": {"_index": args.index, "_type": "publication", "_id": id}}
 
 def has_type(resource, type):
     for rtype in resource.objects(predicate=RDF.type):
@@ -174,14 +175,27 @@ def load_file(filepath):
     with open(filepath) as _file:
         return _file.read().replace('\n', " ")
 
-def describe(endpoint, query):
-    sparql = SPARQLWrapper(endpoint)
+def describe(sparqlendpoint, query):
+    print("sparqlendpoint: ", sparqlendpoint)
+    print("EMAIL: ", EMAIL)
+    print("PASSWORD: ", PASSWORD)
+    sparql = SPARQLWrapper(sparqlendpoint)
     sparql.setQuery(query)
+    sparql.setMethod("POST")
+    sparql.addParameter("email", EMAIL)
+    sparql.addParameter("password", PASSWORD)
     logging.debug('logging - describe query: %s', query)
     try:
         results = sparql.query().convert()
         print("results: ", results)
         return results
+    except EndPointInternalError:
+        try:
+            results = sparql.query().convert()
+            print("results: ", results)
+            return results
+        except RuntimeWarning:
+            pass
     except RuntimeWarning:
         pass
 
@@ -299,7 +313,7 @@ def create_publication_doc(pubgraph,publication):
     #DEBUGS #pdb.set_trace()
     return doc
 
-def process_publication(publication, endpoint='http://localhost:2020/ds/sparql'):
+def process_publication(publication):
     pid = str(os.getpid())
     logfile = args.spooldir + '/log-' + pid
     idxfile = args.spooldir + '/idx-' + pid
@@ -320,34 +334,36 @@ def process_publication(publication, endpoint='http://localhost:2020/ds/sparql')
     return [json.dumps(get_metadata(es_id)), json.dumps(pub)]
     fidx.close()
 
-def generate(threads, sparql):
+def generate(threads):
     pool = multiprocessing.Pool(threads)
     params = [pub for pub in g1.subjects(RDF.type, BIBO.Document)]
     print("params: ", params)
     return list(chain.from_iterable(pool.map(process_publication, params)))
 
-get_orgs_query = load_file("queries/listOrgs.rq")
-get_subjects_query = load_file("queries/listSubjects.rq")
-get_author_query = load_file("queries/listAuthors.rq")
-get_pub_query = load_file("queries/listPubs.rq")
-
-g1 += describe(endpoint,get_orgs_query)
-g1 = g1 + describe(endpoint,get_subjects_query)
-g1 = g1 + describe(endpoint,get_author_query)
-g1 = g1 + describe(endpoint,get_pub_query)
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--threads', default=12, help='number of threads to use (default = 6)')
-    parser.add_argument('--sparql', default='http://localhost:2020/ds/sparql', help='sparql endpoint')
+    parser.add_argument('--threads', default=16, help='number of threads to use (default = 12)')
+    parser.add_argument('--sparqlendpoint', default='http://localtomcathost:8780/vivo/api/sparqlQuery', help='local tomcat host and port for VIVO sparql query API endpoint')
     parser.add_argument('--spooldir', default='./spool', help='where to write files')
-    parser.add_argument('--index', default='fispubs', help='name of the index. Default=fispubs')
+    parser.add_argument('--index', default='fis-pubs-setup', help='name of index, needs to correlate with javascript library')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
     args = parser.parse_args()
+    sparqlendpoint=args.sparqlendpoint
 
-    index=args.index
-    records = generate(threads=int(args.threads), sparql=args.sparql)
+    get_orgs_query = load_file("queries/listOrgs.rq")
+    get_subjects_query = load_file("queries/listSubjects.rq")
+    get_author_query = load_file("queries/listAuthors.rq")
+    get_pub_query = load_file("queries/listPubs.rq")
+
+    g1 += describe(sparqlendpoint,get_orgs_query)
+    g1 = g1 + describe(sparqlendpoint,get_subjects_query)
+    g1 = g1 + describe(sparqlendpoint,get_author_query)
+    g1 = g1 + describe(sparqlendpoint,get_pub_query)
+    print("EMAIL: ", EMAIL)
+    print("PASSWORD: ", PASSWORD)
+
+    records = generate(threads=int(args.threads))
     print "generated records"
     with open(args.out, "w") as bulk_file:
-        bulk_file.write('\n'.join(records))
+      bulk_file.write('\n'.join(records))
 
