@@ -1,11 +1,13 @@
-# get counts of index prior to deletion
-indexname=webex-v2
+
+# Read environment variables. This file is used by both the bash shell scripts and the python ingest scripts
+. ./vivoapipw.py
+indexname=$WEBEXINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
 outdir="spool/${dstamp}"
 mkdir $outdir
-outfile="${outdir}/rebuild-webex.out"
+outfile="${outdir}/rebuild-pubs.out"
 echo "CREATING ES DOCUMENTS" > $outfile
-python ./ingest-publications.py --index ${indexname} --spooldir ${outdir} ${outdir}/${indexname}.idx  >> $outfile 2>&1
+python ./ingest-publications.py --index ${indexname} --sparql ${ENDPOINT} --spooldir ${outdir} ${outdir}/allpubs.idx  >> $outfile 2>&1
 echo "Index counts prior to run" >> $outfile
 ./idx_get_count.sh $indexname >> $outfile
 curl -XDELETE localhost:9200/${indexname} >> $outfile
