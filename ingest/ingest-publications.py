@@ -1,4 +1,4 @@
-from SPARQLWrapper import SPARQLWrapper, JSON
+from SPARQLWrapper import SPARQLWrapper, SPARQLExceptions, JSON
 from rdflib import Graph, Namespace, RDF
 import json
 import requests
@@ -191,6 +191,8 @@ def describe(sparqlendpoint, query):
         return results
     except EndPointInternalError:
         try:
+            print("2nd try after EndPointInternalError")
+            time.sleep(1)
             results = sparql.query().convert()
             print("results: ", results)
             return results
