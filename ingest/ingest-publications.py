@@ -189,13 +189,18 @@ def describe(sparqlendpoint, query):
         results = sparql.query().convert()
         print("results: ", results)
         return results
-    except EndPointInternalError:
+    except Exception, e:
         try:
-            print("2nd try after EndPointInternalError")
+            print("Error trying sparql.query in describe function.")
+            print("Will try again after 1st exception: %s\n" % e)
             time.sleep(1)
             results = sparql.query().convert()
             print("results: ", results)
             return results
+        except Exception, f:
+            print("Error trying sparql.query in describe function.")
+            print "Couldn't do it a second time: %s\n" % f
+            pass
         except RuntimeWarning:
             pass
     except RuntimeWarning:
