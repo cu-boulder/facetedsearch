@@ -2,7 +2,7 @@
 # Use this to reload documents that have already been created
 # Need to hardcode the dstamp variable of the directory that has the documents
 indexname=fispubs-v1
-dstamp="20181001-182001"
+dstamp="20190313-141501"
 outdir="spool/${dstamp}"
 #mkdir $outdir
 outfile="${outdir}/reload-pubs.out"

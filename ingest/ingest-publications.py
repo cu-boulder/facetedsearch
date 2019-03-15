@@ -176,9 +176,9 @@ def load_file(filepath):
         return _file.read().replace('\n', " ")
 
 def describe(sparqlendpoint, query):
-    print("sparqlendpoint: ", sparqlendpoint)
-    print("EMAIL: ", EMAIL)
-    print("PASSWORD: ", PASSWORD)
+#DEBUG    print("sparqlendpoint: ", sparqlendpoint)
+#DEBUG    print("EMAIL: ", EMAIL)
+#DEBUG    print("PASSWORD: ", PASSWORD)
     sparql = SPARQLWrapper(sparqlendpoint)
     sparql.setQuery(query)
     sparql.setMethod("POST")
@@ -366,8 +366,8 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_subjects_query)
     g1 = g1 + describe(sparqlendpoint,get_author_query)
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
-    print("EMAIL: ", EMAIL)
-    print("PASSWORD: ", PASSWORD)
+#DEBUG    print("EMAIL: ", EMAIL)
+#DEBUG    print("PASSWORD: ", PASSWORD)
 
     records = generate(threads=int(args.threads))
     print "generated records"
