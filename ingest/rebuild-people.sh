@@ -10,6 +10,11 @@ outfile="spool/${dstamp}/rebuild-index.out"
 ./idx_get_count.sh ${indexname} >> $outfile
 echo "CREATING ES DOCUMENTS"  > $outfile
 python ./ingest-people.py --index ${indexname} --sparql ${ENDPOINT} spool/$dstamp/people.list   >> $outfile 2>&1
+if ! [ -s $outdir/people.list ]
+then
+   cat $outfile | mailx -s "FAILURE - rebuild-people.sh - no index files" fis-critical@colorado.edu
+   exit
+fi
 ./idx_get_count.sh ${indexname} >> $outfile
 curl -XDELETE localhost:9200/${indexname} >> $outfile
 curl -XPUT localhost:9200/${indexname} >> $outfile
