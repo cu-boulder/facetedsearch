@@ -1,4 +1,4 @@
-from SPARQLWrapper import SPARQLWrapper, SPARQLExceptions, JSON
+from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Namespace, RDF
 import json
 import requests
@@ -176,9 +176,9 @@ def load_file(filepath):
         return _file.read().replace('\n', " ")
 
 def describe(sparqlendpoint, query):
-#DEBUG    print("sparqlendpoint: ", sparqlendpoint)
-#DEBUG    print("EMAIL: ", EMAIL)
-#DEBUG    print("PASSWORD: ", PASSWORD)
+    print("sparqlendpoint: ", sparqlendpoint)
+    print("EMAIL: ", EMAIL)
+    print("PASSWORD: ", PASSWORD)
     sparql = SPARQLWrapper(sparqlendpoint)
     sparql.setQuery(query)
     sparql.setMethod("POST")
@@ -189,18 +189,11 @@ def describe(sparqlendpoint, query):
         results = sparql.query().convert()
         print("results: ", results)
         return results
-    except Exception, e:
+    except EndPointInternalError:
         try:
-            print("Error trying sparql.query in describe function.")
-            print("Will try again after 1st exception: %s\n" % e)
-            time.sleep(1)
             results = sparql.query().convert()
             print("results: ", results)
             return results
-        except Exception, f:
-            print("Error trying sparql.query in describe function.")
-            print "Couldn't do it a second time: %s\n" % f
-            pass
         except RuntimeWarning:
             pass
     except RuntimeWarning:
@@ -349,7 +342,7 @@ def generate(threads):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--threads', default=16, help='number of threads to use (default = 12)')
+    parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
     parser.add_argument('--sparqlendpoint', default='http://localtomcathost:8780/vivo/api/sparqlQuery', help='local tomcat host and port for VIVO sparql query API endpoint')
     parser.add_argument('--spooldir', default='./spool', help='where to write files')
     parser.add_argument('--index', default='fis-pubs-setup', help='name of index, needs to correlate with javascript library')
@@ -366,8 +359,8 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_subjects_query)
     g1 = g1 + describe(sparqlendpoint,get_author_query)
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
-#DEBUG    print("EMAIL: ", EMAIL)
-#DEBUG    print("PASSWORD: ", PASSWORD)
+    print("EMAIL: ", EMAIL)
+    print("PASSWORD: ", PASSWORD)
 
     records = generate(threads=int(args.threads))
     print "generated records"
