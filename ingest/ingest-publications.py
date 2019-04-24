@@ -99,15 +99,17 @@ class Maybe:
 
 def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
     if doi:
-        query = ('http://api.altmetric.com/v1/doi/' + doi + '?key=' +
-                 ALTMETRIC_API_KEY)
+        #DRE for news: query = ('http://api.altmetric.com/v1/fetch/doi/' + doi + '?key=' + ALTMETRIC_API_KEY + '&include_sources=news')
+        query = ('http://api.altmetric.com/v1/fetch/doi/' + doi + '?key=' + ALTMETRIC_API_KEY)
 
         try:
            r = requests.get(query)
            if r.status_code == 200:
              try:
+
                 json = r.json()
-                return json['score']
+#                return json['score']
+                return json
              except ValueError:
                 logging.exception("Could not parse Altmetric response. ")
                 return None
@@ -189,11 +191,18 @@ def describe(sparqlendpoint, query):
         results = sparql.query().convert()
         print("results: ", results)
         return results
-    except EndPointInternalError:
+    except Exception, e:
         try:
+            print("Error trying sparql.query in describe function.")
+            print("Will try again after 1st exception: %s\n" % e)
+            time.sleep(1)
             results = sparql.query().convert()
             print("results: ", results)
             return results
+        except Exception, f:
+            print("Error trying sparql.query in describe function.")
+            print "Couldn't do it a second time: %s\n" % f
+            pass
         except RuntimeWarning:
             pass
     except RuntimeWarning:
@@ -218,9 +227,20 @@ def create_publication_doc(pubgraph,publication):
     doi = doi[0].toPython() if doi else None
     ams = 0
     if doi:
+        print("found DOI:", doi)
         doc.update({"doi": doi})
-        ams = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
-    doc.update({"amscore": ams})
+        j = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
+        try:
+           j
+        except NameError:
+           print ("No altmetric results for doi", doi)
+        else:
+           print("altmetric returned", doi)
+           if isinstance(j, dict):
+             #print("altmetric score", j['score'])
+             ams = j['score']
+             doc.update({"amscore": ams})
+             #DRE - for news -- doc.update({"altmetric": j})
 
     abstract = list(pub.objects(predicate=BIBO.abstract))
     abstract = abstract[0].encode('utf-8') if abstract else None

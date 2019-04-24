@@ -1,7 +1,7 @@
 . ./vivoapipw.py
 indexname=$PUBSINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
-dstamp="20190215-104329"
+dstamp="20190423-102716"
 outdir="spool/${dstamp}"
 #mkdir $outdir
 outfile="${outdir}/reload-pubs.out"
