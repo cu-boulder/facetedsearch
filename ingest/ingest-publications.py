@@ -238,8 +238,10 @@ def create_publication_doc(pubgraph,publication):
            print("altmetric returned", doi)
            if isinstance(j, dict):
              #print("altmetric score", j['score'])
-             ams = j['score']
-             doc.update({"amscore": ams})
+             #if j['score']:
+             if 'score' in j:
+               ams = j['score']
+               doc.update({"amscore": ams})
              #DRE - for news -- doc.update({"altmetric": j})
 
     abstract = list(pub.objects(predicate=BIBO.abstract))
