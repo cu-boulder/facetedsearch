@@ -128,18 +128,11 @@ def select(endpoint, query):
         results = sparql.query().convert()
         print("results: ", results)
         return results["results"]["bindings"]
-    except Exception, e:
+    except EndPointInternalError:
         try:
-            print("Error trying sparql.query in describe function.")
-            print("Will try again after 1st exception: %s\n" % e)
-            time.sleep(1)
             results = sparql.query().convert()
             print("results: ", results)
             return results["results"]["bindings"]
-        except Exception, f:
-            print("Error trying sparql.query in describe function.")
-            print "Couldn't do it a second time: %s\n" % f
-            pass
         except RuntimeWarning:
             pass
     except RuntimeWarning:
@@ -468,6 +461,7 @@ if __name__ == "__main__":
     # save generated bulk import file so it can be backed up or reviewed if there are publish errors
     with open(args.out, "w") as bulk_file:
         bulk_file.write('\n'.join(records))
+        bulk_file.write('\n')
 
     # publish the results to elasticsearch if "--publish" was specified on the command line
     if args.publish:

@@ -1,30 +1,21 @@
-
-# Read environment variables. This file is used by both the bash shell scripts and the python ingest scripts
+# Reworked this to copy the publications index instead of rebuilding it from a SPARQL query
 . ./vivoapipw.py
-indexname=$WEBEXINDEX
-dstamp=`date +%Y%m%d-%H%M%S`
-outdir="spool/${dstamp}"
-mkdir $outdir
-outfile="${outdir}/rebuild-pubs.out"
-echo "CREATING ES DOCUMENTS" > $outfile
-python ./ingest-publications.py --index ${indexname} --sparql ${ENDPOINT} --spooldir ${outdir} ${outdir}/allpubs.idx  >> $outfile 2>&1
-if ! [ -s $outdir/allpubs.idx ]
-then
-   cat $outfile | mailx -s "FAILURE - rebuild-webex.sh - no index files" fis-critical@colorado.edu
-   exit
-fi
-echo "Index counts prior to run" >> $outfile
-./idx_get_count.sh $indexname >> $outfile
-curl -XDELETE localhost:9200/${indexname} >> $outfile
-curl -XPUT localhost:9200/${indexname} >> $outfile
-curl -XPUT localhost:9200/${indexname}/publication/_mapping?pretty --data-binary @mappings/publication.json >> $outfile
-for f in $outdir/idx-*
-do 
-   echo $f 
-   curl -XPUT 'localhost:9200/_bulk' --data-binary @$f >> $outfile 2>&1
-done
-
+sourceindex=$PUBSINDEX
+targetindex=$WEBEXINDEX
+echo "Copying $sourceindex to $targetindex"
+echo "Index counts prior to run" 
+#./idx_get_count.sh $targetindex 
+curl -XDELETE localhost:9200/${targetindex}
+curl -X POST "localhost:9200/_reindex" -H 'Content-Type: application/json' -d'
+{
+  "source": {
+    "index": "'${sourceindex}'"
+  },
+  "dest": {
+    "index": "'${targetindex}'"
+  }
+}
+'
 sleep 10
-echo "Index counts after run" >> $outfile
-./idx_get_count.sh $indexname >> $outfile 2>&1
-python get_index_status.py --index=$indexname
+echo "Index counts after run" 
+#./idx_get_count.sh $targetindex

@@ -1,5 +1,6 @@
 indexname=$1
-curl "localhost:9200/${indexname}/_search?search_type=count" -d '{
+curl -H 'Content-Type: application/json' "localhost:9200/${indexname}/_search" -d '{
+    "size": 0,
     "aggs": {
         "count_by_type": {
             "terms": {

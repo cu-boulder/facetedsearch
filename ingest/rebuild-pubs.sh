@@ -1,5 +1,3 @@
-
-# Read environment variables. This file is used by both the bash shell scripts and the python ingest scripts
 . ./vivoapipw.py
 indexname=$PUBSINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
@@ -8,23 +6,17 @@ mkdir $outdir
 outfile="${outdir}/rebuild-pubs.out"
 echo "CREATING ES DOCUMENTS" > $outfile
 python ./ingest-publications.py --index ${indexname} --sparql ${ENDPOINT} --spooldir ${outdir} ${outdir}/allpubs.idx  >> $outfile 2>&1
-if ! [ -s $outdir/allpubs.idx ]
-then
-   cat $outfile | mailx -s "FAILURE - rebuild-pubs.sh - no index files" fis-critical@colorado.edu
-   exit
-fi
 echo "Index counts prior to run" >> $outfile
 ./idx_get_count.sh $indexname >> $outfile
 curl -XDELETE localhost:9200/${indexname} >> $outfile
 curl -XPUT localhost:9200/${indexname} >> $outfile
-curl -XPUT localhost:9200/${indexname}/publication/_mapping?pretty --data-binary @mappings/publication.json >> $outfile
+curl -XPUT -H 'Content-Type: application/json' localhost:9200/${indexname}/publication/_mapping?pretty --data-binary @mappings/publication.json >> $outfile
 for f in $outdir/idx-*
 do 
    echo $f 
-   curl -XPUT 'localhost:9200/_bulk' --data-binary @$f >> $outfile 2>&1
+   curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/_bulk' --data-binary @$f >> $outfile 2>&1
 done
 
 sleep 10
 echo "Index counts after run" >> $outfile
 ./idx_get_count.sh $indexname >> $outfile 2>&1
-python get_index_status.py --index=$indexname

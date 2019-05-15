@@ -1,4 +1,4 @@
-from SPARQLWrapper import SPARQLWrapper, SPARQLExceptions, JSON
+from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Namespace, RDF
 import json
 import requests
@@ -99,15 +99,17 @@ class Maybe:
 
 def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
     if doi:
-        query = ('http://api.altmetric.com/v1/doi/' + doi + '?key=' +
-                 ALTMETRIC_API_KEY)
+        #DRE for news: query = ('http://api.altmetric.com/v1/fetch/doi/' + doi + '?key=' + ALTMETRIC_API_KEY + '&include_sources=news')
+        query = ('http://api.altmetric.com/v1/fetch/doi/' + doi + '?key=' + ALTMETRIC_API_KEY)
 
         try:
            r = requests.get(query)
            if r.status_code == 200:
              try:
+
                 json = r.json()
-                return json['score']
+#                return json['score']
+                return json
              except ValueError:
                 logging.exception("Could not parse Altmetric response. ")
                 return None
@@ -176,9 +178,9 @@ def load_file(filepath):
         return _file.read().replace('\n', " ")
 
 def describe(sparqlendpoint, query):
-#DEBUG    print("sparqlendpoint: ", sparqlendpoint)
-#DEBUG    print("EMAIL: ", EMAIL)
-#DEBUG    print("PASSWORD: ", PASSWORD)
+    print("sparqlendpoint: ", sparqlendpoint)
+    print("EMAIL: ", EMAIL)
+    print("PASSWORD: ", PASSWORD)
     sparql = SPARQLWrapper(sparqlendpoint)
     sparql.setQuery(query)
     sparql.setMethod("POST")
@@ -225,9 +227,20 @@ def create_publication_doc(pubgraph,publication):
     doi = doi[0].toPython() if doi else None
     ams = 0
     if doi:
+        print("found DOI:", doi)
         doc.update({"doi": doi})
-        ams = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
-    doc.update({"amscore": ams})
+        j = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
+        try:
+           j
+        except NameError:
+           print ("No altmetric results for doi", doi)
+        else:
+           print("altmetric returned", doi)
+           if isinstance(j, dict):
+             #print("altmetric score", j['score'])
+             ams = j['score']
+             doc.update({"amscore": ams})
+             #DRE - for news -- doc.update({"altmetric": j})
 
     abstract = list(pub.objects(predicate=BIBO.abstract))
     abstract = abstract[0].encode('utf-8') if abstract else None
@@ -349,7 +362,7 @@ def generate(threads):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--threads', default=16, help='number of threads to use (default = 12)')
+    parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
     parser.add_argument('--sparqlendpoint', default='http://localtomcathost:8780/vivo/api/sparqlQuery', help='local tomcat host and port for VIVO sparql query API endpoint')
     parser.add_argument('--spooldir', default='./spool', help='where to write files')
     parser.add_argument('--index', default='fis-pubs-setup', help='name of index, needs to correlate with javascript library')
@@ -366,8 +379,8 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_subjects_query)
     g1 = g1 + describe(sparqlendpoint,get_author_query)
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
-#DEBUG    print("EMAIL: ", EMAIL)
-#DEBUG    print("PASSWORD: ", PASSWORD)
+    print("EMAIL: ", EMAIL)
+    print("PASSWORD: ", PASSWORD)
 
     records = generate(threads=int(args.threads))
     print "generated records"
