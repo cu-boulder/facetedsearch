@@ -35,6 +35,7 @@
                 default_facet_size: 15,
                 facets: [
                     {'field': 'mostSpecificType.keyword', 'display': 'Publication Type'},
+                    {'field': 'cuscholarexists.keyword', 'display': 'Open Access'},
                     {'field': 'authors.name.keyword', 'size': 20, 'display': 'Author'},
                     {'field': 'publishedIn.name.keyword', 'display': 'Published In'},
                     {'field': 'publicationYear.keyword', 'display': 'Year Published', 'sort':'desc', "size" : 25},
@@ -54,24 +55,17 @@
                     var doi = record["doi"];
                     var doiUrl = "https://dx.doi.org/"+record["doi"];
                     var escapedDOI = encodeURIComponent(doi).replace(/-/g, "--");
-                    var doiBadgeURL = "https://img.shields.io/badge/DOI-" + escapedDOI + "-blue.svg";
+                    var scholarBadgeURL = "https://img.shields.io/badge/Open_Access-CU_Scholar-orange.svg?style=social&logo=open-access&logoColor=orange";
+                    var doiBadgeURL = "https://img.shields.io/badge/DOI-" + escapedDOI + "-blue.svg?style=social&labelColor=black";
                     var html = "<tr><td>";
 
                     if (record["name"]) {
                         html += "<strong><h4><a href=\""+record["uri"]+"\" target=\"_blank\">"+record["name"]+"</a></h4></strong>";
                     }
 
-                    if (record["publicationDate"]) {
-                        html += "Publication Date: " + record["publicationDate"] + "         ";
-                    }
-
-                    html += "<br />";
-                    if (record["mostSpecificType"]) {
-                        html += "Type: " + record["mostSpecificType"];
-                    }
 
                     if (record["authors"]) {
-                        html += "<br /><span><small>CU Boulder Authors: ";
+                        html += "<span><small>CU Boulder Authors: ";
                         for (var i = 0; i < record["authors"].length; i++) {
                             html += "<a href=\"" + record["authors"][i]["uri"] + "\" target=\"_blank\">" + record["authors"][i]["name"] + "</a>";
                             if (i < record["authors"].length - 1) {
@@ -96,17 +90,37 @@
                         html += "<br /><span>Published in: <a href=\""+record["publishedIn"]["uri"]+"\" target=\"_blank\">"+record["publishedIn"]["name"]+"</a></span>";
                     }
 
+
+                    html += "<br />";
+                    if (record["publicationDate"]) {
+                        html += "Publication Date: " + record["publicationDate"] + "         ";
+                    }
+
+                    html += "<br />";
+                    if (record["mostSpecificType"]) {
+                        html += "Type: " + record["mostSpecificType"];
+                    }
+
+
                     if (record["presentedAt"]) {
                         html += "<br /><span>Presented at: <a href=\""+record["presentedAt"]["uri"]+"\" target=\"_blank\">"+record["presentedAt"]["name"]+"</a></span>";
                     }
 
                     // Badges
 
-                    html += "<div class='badge'>"
+                    html += "<br><div class='badge'>"
 
+                    html += "<div style=\"padding-right: 4px\">"
                     if (record["doi"]) {
-                        html += "<br /><span><a href=\""+doiUrl+"\" target=\"_blank\"><img src=" + doiBadgeURL + "></a></span>";
+                        html += "<a href=\""+doiUrl+"\" target=\"_blank\"><img src=" + doiBadgeURL + "></a>";
                     } 
+                    html += "</div>"
+
+                    html += "<div>"
+                    if (record["cuscholar"]) {
+                        html += "<a href=\""+record["cuscholar"]+"\" target=\"_blank\"><img src=" + scholarBadgeURL + "></a>";
+                    } 
+                    html += "</div>"
 
                    html += "<div class='altmetric-embed' data-link-target='_blank' data-hide-no-mentions='true' data-badge-popover='left' data-doi=\""+record["doi"]+"\"></div>"
 
@@ -157,6 +171,8 @@
         .badge a {
            float: left;
            display: inline;
+           padding-right: 5px;
+           padding-top: 10px;
         }
 
     </style>

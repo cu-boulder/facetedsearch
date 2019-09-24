@@ -20,6 +20,7 @@ CONSTRUCT
     ?publication rdf:type ?mostSpecificType .
     ?publication rdfs:label ?label .
     ?publication bibo:doi ?doi .
+    ?publication pubs:cuscholar ?cuscholar .
     ?publication bibo:abstract ?abstract .
     ?publication vivo:relatedBy ?authorship .
     ?authorship rdf:type vivo:Authorship .
@@ -45,6 +46,7 @@ WHERE
    ?authorship rdf:type vivo:Authorship .
    ?authorship vivo:relates ?author .
    OPTIONAL { ?publication bibo:doi ?doi }
+   OPTIONAL { ?publication pubs:cuscholar ?cuscholar }
    OPTIONAL { ?publication bibo:abstract ?abstract }
    OPTIONAL { ?publication bibo:pageEnd ?pageend }
      OPTIONAL { ?publication bibo:pageStart ?pagestart }

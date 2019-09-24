@@ -244,6 +244,13 @@ def create_publication_doc(pubgraph,publication):
                doc.update({"amscore": ams})
              #DRE - for news -- doc.update({"altmetric": j})
 
+    cuscholar = list(pub.objects(predicate=PUBS.cuscholar))
+    cuscholar = cuscholar[0].toPython() if cuscholar else None
+    if cuscholar:
+        print("found cuscholar:", cuscholar)
+        doc.update({"cuscholar": cuscholar})
+        doc.update({"cuscholarexists": "CU Scholar"})
+
     abstract = list(pub.objects(predicate=BIBO.abstract))
     abstract = abstract[0].encode('utf-8') if abstract else None
     if abstract:
