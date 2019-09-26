@@ -41,6 +41,7 @@
                     //Example of date range histogram for future // {"field": "publicationYear", "display": "Publication Year", "type" : "date_histogram", "open" : false,"sort":"desc", "size" : 25},
                     {'field': 'authors.organization.name.keyword', 'display': 'Author Organization'},
                     {'field': 'authors.researchArea.name.keyword', 'display': 'Author Research Area'},
+                    {'field': 'cuscholarexists.keyword', 'display': 'Open Access'},
 		    {'field': 'amscore', 'display': 'Altmetric Range', "type" : "range", "range" : [{"to" : 0.001, "display" : "0 or no value"}, {"from" : 0.001, "to" :  100, "display" : "1 - 99"}, {"from" : 100, "to" : 500, "display" : "100 - 499"}, {"from" : 500, "display" : "500+"}], 'sort':'desc', "size" : 25},
                 ],
                 search_sortby: [
@@ -54,24 +55,17 @@
                     var doi = record["doi"];
                     var doiUrl = "https://dx.doi.org/"+record["doi"];
                     var escapedDOI = encodeURIComponent(doi).replace(/-/g, "--");
-                    var doiBadgeURL = "https://img.shields.io/badge/DOI-" + escapedDOI + "-blue.svg";
+                    var scholarBadgeURL = "https://img.shields.io/badge/Open_Access-CU_Scholar-orange.svg?style=social&logo=open-access&logoColor=orange";
+                    var doiBadgeURL = "https://img.shields.io/badge/DOI-" + escapedDOI + "-blue.svg?style=social&labelColor=black";
                     var html = "<tr><td>";
 
                     if (record["name"]) {
                         html += "<strong><h4><a href=\""+record["uri"]+"\" target=\"_blank\">"+record["name"]+"</a></h4></strong>";
                     }
 
-                    if (record["publicationDate"]) {
-                        html += "Publication Date: " + record["publicationDate"] + "         ";
-                    }
-
-                    html += "<br />";
-                    if (record["mostSpecificType"]) {
-                        html += "Type: " + record["mostSpecificType"];
-                    }
 
                     if (record["authors"]) {
-                        html += "<br /><span><small>CU Boulder Authors: ";
+                        html += "<span><small>CU Boulder Authors: ";
                         for (var i = 0; i < record["authors"].length; i++) {
                             html += "<a href=\"" + record["authors"][i]["uri"] + "\" target=\"_blank\">" + record["authors"][i]["name"] + "</a>";
                             if (i < record["authors"].length - 1) {
@@ -96,17 +90,37 @@
                         html += "<br /><span>Published in: <a href=\""+record["publishedIn"]["uri"]+"\" target=\"_blank\">"+record["publishedIn"]["name"]+"</a></span>";
                     }
 
+
+                    html += "<br />";
+                    if (record["publicationDate"]) {
+                        html += "Publication Date: " + record["publicationDate"] + "         ";
+                    }
+
+                    html += "<br />";
+                    if (record["mostSpecificType"]) {
+                        html += "Type: " + record["mostSpecificType"];
+                    }
+
+
                     if (record["presentedAt"]) {
                         html += "<br /><span>Presented at: <a href=\""+record["presentedAt"]["uri"]+"\" target=\"_blank\">"+record["presentedAt"]["name"]+"</a></span>";
                     }
 
                     // Badges
 
-                    html += "<div class='badge'>"
+                    html += "<br><div class='badge'>"
 
+                    html += "<div style=\"padding-right: 4px\">"
                     if (record["doi"]) {
-                        html += "<br /><span><a href=\""+doiUrl+"\" target=\"_blank\"><img src=" + doiBadgeURL + "></a></span>";
+                        html += "<a href=\""+doiUrl+"\" target=\"_blank\"><img src=" + doiBadgeURL + "></a>";
                     } 
+                    html += "</div>"
+
+                    html += "<div>"
+                    if (record["cuscholar"]) {
+                        html += "<a href=\""+record["cuscholar"]+"\" target=\"_blank\"><img src=" + scholarBadgeURL + "></a>";
+                    } 
+                    html += "</div>"
 
                    html += "<div class='altmetric-embed' data-link-target='_blank' data-hide-no-mentions='true' data-badge-popover='left' data-doi=\""+record["doi"]+"\"></div>"
 
@@ -157,6 +171,8 @@
         .badge a {
            float: left;
            display: inline;
+           padding-right: 5px;
+           padding-top: 10px;
         }
 
     </style>
