@@ -12,12 +12,13 @@ PREFIX bibo: <http://purl.org/ontology/bibo/>
 PREFIX obo: <http://purl.obolibrary.org/obo/>
 PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 
-DESCRIBE ?person ?mostSpecificType ?main_image ?thumb_image ?thumbnail ?research_area ?vcard ?email ?name ?position ?affiliation ?homeCountry
+DESCRIBE ?person ?mostSpecificType ?main_image ?thumb_image ?thumbnail ?research_area ?vcard ?email ?url ?name ?position ?affiliation ?homeCountry ?awardrecip ?award ?instructor ?course
 WHERE {
   ?person a foaf:Person .
   OPTIONAL { ?person vitro:mostSpecificType ?mostSpecificType }
   ?person obo:ARG_2000028 ?vcard .
   OPTIONAL { ?vcard vcard:hasEmail ?email }
+  OPTIONAL { ?vcard vcard:hasURL ?url }
   ?vcard vcard:hasName ?name .
   OPTIONAL { ?person vivo:relatedBy ?position .
              ?position a vivo:Position .

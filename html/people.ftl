@@ -37,19 +37,20 @@
                     </div>
                 </div>
                 <div class="person-info">
-                    {{#if (showMostSpecificType mostSpecificType)}}<div><em class="small">{{mostSpecificType}}</em></div>{{/if}}
+
                     {{#if email}}<div><strong>Email: </strong><a href="mailto:{{email}}">{{email}}</a></div>{{/if}}
                     {{#if orcid}}<div><strong>ORCID ID:</strong> <a href="{{orcidURL orcid}}" target="_blank">{{orcid}}</a></div>{{/if}}
-
-
-                    {{#if organization}}
-                    <div><strong>Organizations:</strong> {{#expand organization}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
-                    {{/if}}
 
                     {{#if affiliations}}
                     <div><strong>Affiliations:</strong></div>
                     {{#list affiliations}}{{position}} - <a href="{{org.uri}}">{{org.name}}</a>{{/list}}
                     {{/if}}
+
+
+                    {{#if courses}}
+                    <div><strong>Courses:</strong> {{#expand courses}}<a href="{{course.uri}}" target="_blank">{{course.name}}</a>{{/expand}}</div>
+                    {{/if}}
+
 
                     {{#if researchArea}}
                     <div><strong>Research Areas:</strong> {{#expand researchArea}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
@@ -118,6 +119,8 @@
                     {'field': 'organization.name.keyword', 'display': 'Organization'},
                     {'field': 'researchArea.name.keyword', 'display': 'Research Area'},
                     {'field': 'homeCountry.name.keyword', 'display': 'International Activities'},
+                    {'field': 'taughtcourse.keyword', 'display': 'Taught Course'},
+                    {'field': 'awardreceived.keyword', 'display': 'Received Honor/Award'},
                 ],
                 search_sortby: [
                     {'display':'Name','field':'name.keyword'}
