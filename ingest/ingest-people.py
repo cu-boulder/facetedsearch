@@ -12,6 +12,7 @@ import logging, sys
 import urllib
 import pdb   # Debugging purposes - comment out for production
 import socket
+import codecs
 
 # import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
 # Also eventually can put more config info in here
@@ -116,8 +117,8 @@ def get_id(fis_id):
 
 def select(endpoint, query):
     print("endpoint: ", endpoint)
-    print("EMAIL: ", EMAIL)
-    print("PASSWORD: ", PASSWORD)
+#    print("EMAIL: ", EMAIL)
+#    print("PASSWORD: ", PASSWORD)
 
     endpoint = endpoint
     sparql = SPARQLWrapper(endpoint)
@@ -277,7 +278,7 @@ def get_organizations(person):
             .flatmap(lambda r: r.objects(VIVO.relates)) \
             .filter(lambda o: has_type(o, FOAF.Organization)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}).one().value
+            .map(lambda o: {"uri": str(o.identifier), "name": o.label()}).one().value
 
         if organization:
             organizations.append(organization)
@@ -307,7 +308,7 @@ def get_affiliations(person):
             .flatmap(lambda r: r.objects(VIVO.relates)) \
             .filter(lambda o: has_type(o, FOAF.Organization)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}) \
+            .map(lambda o: {"uri": str(o.identifier), "name": o.label()}) \
             .one().value
 
         if organization:
@@ -333,7 +334,7 @@ def get_courses(coursesgraph):
         course = Maybe.of(instructor).stream() \
             .flatmap(lambda o: o.objects(OBO.BFO_0000054)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())[0:str(o.label()).find(" -")]}) \
+            .map(lambda o: {"uri": str(o.identifier), "name": o.label()[0:o.label().find(" -")]}) \
             .one().value
         if course:
             print("course exists: ", course)
@@ -354,14 +355,14 @@ def get_awards(awardgraph):
     print("got award receipts")
 
     for receipt in receipts:
-        print("in award receipt loop")
-        print(receipt)
+#        print("in award receipt loop")
+#        print(receipt)
 
         award = Maybe.of(receipt).stream() \
             .flatmap(lambda r: r.objects(VIVO.relates)) \
             .filter(lambda o: has_type(o, VIVO.Award)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}) \
+            .map(lambda o: {"uri": o.identifier, "name": o.label()}) \
             .one().value
 
         awarddate = Maybe.of(receipt).stream() \
@@ -371,21 +372,21 @@ def get_awards(awardgraph):
 
         awardyear = str(awarddate)[:4]
 
-        print("Awarddate: ", awardyear)
+#        print("Awarddate: ", awardyear)
 
         awardorg = Maybe.of(receipt).stream() \
             .flatmap(lambda r: r.objects(VIVO.relates)) \
             .filter(lambda o: has_type(o, VIVO.Award)) \
             .flatmap(lambda a: a.objects(VIVO.assignedBy)) \
-            .map(lambda a: {"uri": str(a.identifier), "name": str(a.label())}) \
+            .map(lambda a: {"uri": str(a.identifier), "name": a.label()}) \
             .one().value
-        print("Awardorg: ", awardorg)
+#        print("Awardorg: ", awardorg)
 
 
         if award:
-            print("award exists: ", award)
+#            print("award exists: ", award)
             awards.append({"award": award, "awardorg": awardorg, "awardyear": awardyear})
-            print("awards: ", awards)
+#            print("awards: ", awards)
 
     return awards
 
@@ -404,7 +405,7 @@ def create_person_doc(person, endpoint):
     logging.info('create_person_doc: %s', person)
     logging.debug('about to describe person: %s', person)
     graph = describe_person(endpoint=endpoint, person=person)
-    print("graph:", graph)
+#    print("graph:", graph)
     sys.stdout.flush()
     logging.debug('about to create graph resource for : %s', person)
     try:
@@ -417,7 +418,7 @@ def create_person_doc(person, endpoint):
 
     logging.debug('about to describe award: %s', person)
     grapha = describe_award(endpoint=endpoint, person=person)
-    print("grapha:", grapha)
+#    print("grapha:", grapha)
     sys.stdout.flush()
     logging.debug('about to create award graph resource for : %s', person)
     try:
@@ -430,7 +431,7 @@ def create_person_doc(person, endpoint):
 
     logging.debug('about to describe courses: %s', person)
     graphc = describe_courses(endpoint=endpoint, person=person)
-    print("graphc:", graphc)
+#    print("graphc:", graphc)
     sys.stdout.flush()
     logging.debug('about to create courses graph resource for : %s', person)
     try:
@@ -444,7 +445,7 @@ def create_person_doc(person, endpoint):
 
     logging.debug('check label: %s', person)
     try:
-        print("person has label:", per.label())
+#        print("person has label:", per.label())
         name = per.label()
     except AttributeError:
         print("missing name:", person)
@@ -509,7 +510,7 @@ def create_person_doc(person, endpoint):
         doc.update({"awards": awards})
         doc.update({"awardreceived": "yes"})
  
-    print("coursesgraph: ", coursesgraph)
+#    print("coursesgraph: ", coursesgraph)
     courses = get_courses(coursesgraph)
     if courses:
         doc.update({"courses": courses})
