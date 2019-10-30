@@ -349,8 +349,8 @@ def get_courses(coursesgraph):
 #    print("got instructors: ", instructors)
 
     for instructor in instructors:
-        print("in instructor loop")
-        print("instructor: ", instructor)
+#        print("in instructor loop")
+#        print("instructor: ", instructor)
 
         course = Maybe.of(instructor).stream() \
             .flatmap(lambda o: o.objects(OBO.BFO_0000054)) \
@@ -358,8 +358,7 @@ def get_courses(coursesgraph):
             .map(lambda o: {"uri": str(o.identifier), "name": o.label()[0:o.label().find(" -")]}) \
             .one().value
         if course:
-            print("course exists: ", course)
-#            courses.append({"course": course})
+#            print("course exists: ", course)
             courses.append(course)
 
     return courses
@@ -368,13 +367,13 @@ def get_courses(coursesgraph):
 def get_awards(awardgraph):
     awards = []
 
-    print("In get_awards")
+#    print("In get_awards")
 
     receipts = Maybe.of(awardgraph).stream() \
         .flatmap(lambda per: per.objects(VIVO.relatedBy)) \
         .filter(lambda related: has_type(related, VIVO.AwardReceipt)).list()
 
-    print("got award receipts")
+#    print("got award receipts")
 
     for receipt in receipts:
 #        print("in award receipt loop")
@@ -576,9 +575,9 @@ def publish(bulk, endpoint, rebuild, mapping):
         print "putting map file"
         if r.status_code != requests.codes.ok:
             print r.status_code, r.content
+
             # new mapping may be incompatible with previous
             # delete current mapping and re-push
-
             requests.delete(mapping_url, verify=False)
             print "failed. deleting..."
             r = requests.put(mapping_url, data=mapping_file, verify=False)
