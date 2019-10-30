@@ -250,12 +250,33 @@ def get_email(person):
         .one().value
 
 def get_website(person):
-    return Maybe.of(person).stream() \
+    weblinks = []
+
+    websites = Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
         .flatmap(lambda v: v.objects(VCARD.hasURL)) \
-        .flatmap(lambda e: e.objects(VCARD.url)) \
-        .filter(non_empty_str) \
-        .one().value
+        .filter(lambda o: has_type(o,VCARD.URL)).list()
+
+    for website in websites:
+        print("website", website )
+
+        webname = Maybe.of(website).stream() \
+           .filter(has_label) \
+           .map(lambda t: str(t.label())) \
+           .filter(non_empty_str) \
+           .one().value[0]
+        print("webname", webname)
+
+        weburl = Maybe.of(website).stream() \
+           .flatmap(lambda e: e.objects(VCARD.url)) \
+           .map(lambda r: r.value) \
+           .one().value
+        print("weburl", weburl)
+
+        if weburl:
+           weblinks.append({"name": webname, "uri": weburl})
+
+    return weblinks
 
 
 def get_research_areas(person):
@@ -338,7 +359,8 @@ def get_courses(coursesgraph):
             .one().value
         if course:
             print("course exists: ", course)
-            courses.append({"course": course})
+#            courses.append({"course": course})
+            courses.append(course)
 
     return courses
 
