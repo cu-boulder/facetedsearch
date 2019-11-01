@@ -1,4 +1,110 @@
+
 <!DOCTYPE html>
+<html lang="en">
+    <head>
+
+<meta charset="utf-8" />
+<!-- Google Chrome Frame open source plug-in brings Google Chrome's open web technologies and speedy JavaScript engine to Internet Explorer-->
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+<title>People | CU Experts | CU Boulder</title>
+
+
+
+<!-- vitro base styles (application-wide) -->
+<link rel="stylesheet" href="/css/vitro.css" />
+
+
+
+<link rel="stylesheet" href="/css/edit.css" /><link rel="stylesheet" href="/themes/cu-boulder/css/screen.css" />
+
+<script>
+var i18nStrings = {
+    allCapitalized: 'All',
+};
+</script>
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/vitroUtils.js"></script>
+
+<!--[if lt IE 9]>
+<script type="text/javascript" src="/js/html5.js"></script>
+<![endif]-->
+
+ 
+
+<!--[if lt IE 7]>
+<link rel="stylesheet" href="/themes/cu-boulder/css/ie6.css" />
+<![endif]-->
+
+<!--[if IE 7]>
+<link rel="stylesheet" href="/themes/cu-boulder/css/ie7.css" />
+<![endif]-->
+
+<!--[if (gte IE 6)&(lte IE 8)]>
+<script type="text/javascript" src="/js/selectivizr.js"></script>
+<![endif]-->
+
+
+
+<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    </head>
+    
+    <body class="people" onload="">
+        <div id="banner">
+
+<header id="branding" role="banner">
+    <h1 class="vivo-logo"><a title="CU Experts | research & expertise across CU Boulder" href="/"><span class="displace">CU Experts</span></a></h1>
+
+    <nav role="navigation">
+     
+    </nav>
+    
+    <section id="ucb-search" role="region">
+
+        <div id="ucb-searchform">
+	    <form action="/search" name="search" role="search">
+	        <div id="ucb-inputwrapper">
+		    <input type="text" class="ucb-text" name="querytext"
+		    placeholder="Search CU Experts" size="15" maxlength="128"/>
+                </div>
+                <div id="edit-actions">
+                    <input type="submit" id="edit-submit" value="Search">
+                </div>
+                <!-- <input type="image" src="/themes/cu-boulder/images/ucb-submit.png" value="Search" size="22,23" border="0" /> -->
+            </form>
+        </div>
+        <div id="ucb-culinks"><strong>CU:</strong>
+              <a href="http://www.colorado.edu/">Home</a> &bull; <a
+              href="http://www.colorado.edu/atoz/">A to Z</a> &bull; <a
+              href="http://www.colorado.edu/campusmap/">Campus Map</a>
+        </div>
+    </section>
+</header>
+        
+
+<nav id="top-nav" role="navigation">
+    <ul id="main-nav" role="list">
+            <li role="listitem"><a href="/" title="menu item" >Home</a></li>
+            <li role="listitem"><a href="/people" title="menu item"  class="selected" >People</a></li>
+            <li role="listitem"><a href="/organizations" title="menu item" >Organizations</a></li>
+            <li role="listitem"><a href="/publications" title="menu item" >Publications</a></li>
+            <li role="listitem"><a href="/honors" title="menu item" >Honors</a></li>
+            <li role="listitem"><a href="/research" title="menu item" >Research</a></li>
+            <li role="listitem"><a href="/international" title="menu item" >International</a></li>
+            <li role="listitem"><a href="/forIndustry" title="menu item" >Industry</a></li>
+            <li role="listitem"><a href="/about" title="menu item" >About</a></li>
+    </ul>
+</nav>
+</div>
+<div id="wrapper-content" role="main">        
+    
+    <!--[if lte IE 8]>
+    <noscript>
+        <p class="ie-alert">This site uses HTML elements that are not recognized by Internet Explorer 8 and below in the absence of JavaScript. As a result, the site will not be rendered appropriately. To correct this, please either enable JavaScript, upgrade to Internet Explorer 9, or use another browser. Here are the <a href="http://www.enable-javascript.com"  title="java script instructions">instructions for enabling JavaScript in your web browser</a>.</p>
+    </noscript>
+    <![endif]-->
+        
+        <!DOCTYPE html>
 <html>
 <head lang="en">
     <meta charset="UTF-8">
@@ -19,49 +125,86 @@
 
     <link rel="stylesheet" href="/themes/cu-boulder/facetview2/css/facetview.css">
     <link rel="stylesheet" href="/themes/cu-boulder/browsers.css">
+    <!-- Add Font Awesome icon library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.rawgit.com/jpswalsh/academicons/master/css/academicons.min.css">
     <!-- <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.5/leaflet.css" /> -->
 
     <script id="person-template" type="text/x-handlebars-template">
         <tr>
             <td>
+                </div>
+
+                <div class="person-body">
                 <div class="thumbnail">
-                    {{#if thumbnail}}<img src="{{thumbnail}}">{{/if}}
+                    {{#if thumbnail}}
+                       <img src="{{thumbnail}}">
+                    {{else}}
+                       <img src="https://vivo-cub-dev.colorado.edu/images/placeholders/thumbnail.jpg">
+                    {{/if}}
                     <div class="caption">
-                        <h5><small>
-                            {{#if dcoId}}
-                            <a class="{{#if isDcoMember}}dco-logo{{/if}}" href="{{dcoId}}" target="_blank">{{name}}</a>
-                            {{else}}
-                            <a class="{{#if isDcoMember}}dco-logo{{/if}}" href="{{uri}}" target="_blank">{{name}}</a>
-                            {{/if}}
-                        </small></h5>
+                    <strong>
+                    {{#if email}}
+                       <div class="weblink">
+                          <a href="mailto:{{email}}" class="fa fa-envelope-square fa-lg"></a>
+                       </div>
+                    {{/if}}
+                    {{#if orcid}}
+                       <div class="weblink">
+                          <a href="{{orcidURL orcid}}" target="_blank" class="ai ai-orcid fa-lg"></a>
+                       </div>
+                    {{/if}}
+                    </strong>
+                    {{#if website}}
+                      {{#listWebLinks website}}
+                          <div class="weblink">
+                             <a href="{{uri}}"` target="_blank" class="{{wclass}} fa-lg"></a>
+                          </div>
+                      {{/listWebLinks}}
+                    {{/if}}
+                    </strong>
                     </div>
                 </div>
                 <div class="person-info">
-                    {{#if (showMostSpecificType mostSpecificType)}}<div><em class="small">{{mostSpecificType}}</em></div>{{/if}}
-                    {{#if email}}<div><strong>Email: </strong><a href="mailto:{{email}}">{{email}}</a></div>{{/if}}
-                    {{#if orcid}}<div><strong>ORCID ID:</strong> <a href="{{orcidURL orcid}}" target="_blank">{{orcid}}</a></div>{{/if}}
-
-
-                    {{#if organization}}
-                    <div><strong>Organizations:</strong> {{#expand organization}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
-                    {{/if}}
+                   <div class="name"> <strong><h3> <a href="{{uri}}" target="_blank">{{name}}</a></h3></strong></div>
 
                     {{#if affiliations}}
-                    <div><strong>Affiliations:</strong></div>
                     {{#list affiliations}}{{position}} - <a href="{{org.uri}}">{{org.name}}</a>{{/list}}
                     {{/if}}
 
                     {{#if researchArea}}
-                    <div><strong>Research Areas:</strong> {{#expand researchArea}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    <div><strong>Research Areas:</strong> {{#expand researchArea 9 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
                     {{#if homeCountry}}
-                    <div><strong>International Activities:</strong> {{#expand homeCountry}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    <div><strong>International Activities:</strong> {{#expand homeCountry 5 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    {{/if}}
+                    {{#if awards}}
+                    <div><strong>Honors:</strong> {{#expand awards 10 uri }}<a href="{{award.uri}}" target="_blank">{{award.name}}</a>{{/expand}}</div>
+                    {{/if}}
+
+                    {{#if courses}}
+                    <div><strong>Courses:</strong> {{#expand courses 5 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
                 </div>
+<!--
+{{#if researchOverview}}
+  <div class="dropdown">
+/   <button 
+      class="dropbtn">Research Overview
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div class="dropdown-content">
+        {{researchOverview}}
+    </div>
+  </div>
+{{/if}}
+-->
+                </div>
             </td>
         </tr>
+*/
     </script>
 
     <script type="text/javascript">
@@ -74,13 +217,41 @@
             return (mostSpecificType && mostSpecificType != "Person");
         });
 
-        Handlebars.registerHelper('expand', function(items, options) {
+        Handlebars.registerHelper('listWebLinks', function(items, options) {
             var out = "";
-            var j = items.length - 1;
+
+            items.sort((a, b) => (a.name < b.name) ? 1 : -1);
             for(var i = 0; i < items.length; i++) {
-                out += options.fn(items[i]);
-                if(i < j) {
+               if (items[i].name == "Twitter") { items[i].wclass = "fa fa-twitter" }
+               if (items[i].name == "LinkedIn") { items[i].wclass = "fa fa-linkedin" }
+               if (items[i].name == "Webpage") { items[i].wclass = "fa fa-globe" }
+               out += options.fn(items[i]);
+            }
+            return out;
+        });
+
+
+
+        Handlebars.registerHelper('expand', function(items, num, url, options) {
+            var out = "";
+            var z = items.length;
+            var j = items.length - 1;
+            var x = z;
+            if(num < z) { x = num }
+            var y = x - 1;
+            for(var i = 0; i < x; i++) {
+                if(i < y) {
+                    out += options.fn(items[i]);
                     out += "; ";
+                }
+                else {
+                  if(x < z) {
+                    out += options.fn(items[i]);
+                    out += options.fn({uri: url, name: " ...more"})
+                  } 
+                  else {
+                    out += options.fn(items[i]);
+                  }
                 }
             }
             return out;
@@ -118,6 +289,8 @@
                     {'field': 'organization.name.keyword', 'display': 'Organization'},
                     {'field': 'researchArea.name.keyword', 'display': 'Research Area'},
                     {'field': 'homeCountry.name.keyword', 'display': 'International Activities'},
+                    {'field': 'taughtcourse.keyword', 'display': 'Taught Course'},
+                    {'field': 'awardreceived.keyword', 'display': 'Received Honor/Award'},
                 ],
                 search_sortby: [
                     {'display':'Name','field':'name.keyword'}
@@ -159,6 +332,22 @@
             box-shadow: none;
         }
 
+        .person-header {
+            display: flex;
+            vertical-align: top;
+            clear: left;
+            margin-left: 0 !important;
+            max-width: 100%;
+            justify-content: center;
+        }
+
+        .person-body {
+            display: inline-block;
+            vertical-align: top;
+            clear: left;
+            margin-left: 0 !important;
+            max-width: 100%;
+        }
         .person-info {
             display: inline-block;
             vertical-align: top;
@@ -174,6 +363,20 @@
             border: none;
         }
 
+        .name {
+            box-shadow: none;
+            border: none;
+            margin-top: -12px;
+            margin-bottom: -12px;
+        }
+
+        .weblink {
+            display: inline-block;
+            box-shadow: none;
+            border: none;
+            margin: 1px;
+        }
+
         #facetview_filter_isDcoMember {
             display: none; !important;
             visibility: hidden;
@@ -182,11 +385,95 @@
         #facetview_filter_group_isDcoMember {
             display: none; !important;
         }
+
         .help {
             margin: 10px;
             border: 2px solid #c6ebc6;
             padding: 0 10px 10px;
         }
+
+        .caption {
+           margin-left: -10px;
+           margin-right: -11px;
+        }
+.ul {
+    margin: 0 0 4px 19px;
+}
+.navbar {
+  overflow: hidden;
+  background-color: #333;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.navbar a {
+  float: left;
+  font-size: 16px;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.dropdown {
+  float: left;
+  overflow: hidden;
+}
+
+.dropdown .dropbtn {
+  font-size: 14px;  
+  border: none;
+  outline: none;
+  color: black;
+  padding: 4px 6px;
+  background-color: inherit;
+  font-family: inherit;
+  margin: 0;
+}
+
+.navbar a:hover, .dropdown:hover .dropbtn {
+  background-color: grey;
+}
+
+.dropdown-content {
+  display: none;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content a {
+  float: none;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+ /* Style all font awesome icons */
+.fa-twitter {
+  background: #55ACEE;
+  color: white;
+}
+
+.fa-linkedin {
+  background: #007bb5;
+  color: white;
+}
+.ai-orcid {
+    background: white;
+    color: #A6CE39;
+}
+
     </style>
 
 </head>
@@ -195,3 +482,51 @@
 <div class="help"> <h3> PEOPLE SEARCH </h3> Use the People Search bar directly below or the expandable Filters at left to explore Boulder faculty data. People Search allows for wildcard * or exact search with " " double quotations. The research filter is only searching the Research Keywords, not the free-text keywords or research overview. To search VIVO without the filters in order to include all research fields, use the site search bar in the VIVO page header. Filters default to 'and' logic. Toggle with the 'or' button if desired.</div>
 </body>
 </html>
+
+        
+
+</div> <!-- #wrapper-content -->
+
+<footer role="contentinfo">
+    <p class="copyright">
+            <small>&copy;2019
+            Regents of the University of Colorado
+             | <a class="terms" href="/termsOfUse" title="terms of use">Terms of Use</a></small> | 
+        Powered by <a class="powered-by-vivo" href="http://vivoweb.org" target="_blank" title="powered by VIVO"><strong>VIVO</strong></a>
+	        <br/> Data updated last 11/7/2013 4:00 AM
+	        <br/> University of Colorado Boulder / CU Boulder
+                <br/> Fundamental data on national and international awards provided by Academic Analytics.
+    </p>
+    
+    <nav role="navigation">
+        <ul id="footer-nav" role="list">
+            <li role="listitem"><a href="/about" title="about">About</a></li>
+        </ul>
+    </nav>
+</footer>
+
+
+
+
+
+
+
+
+<script type="text/javascript">  
+if (document.location.hostname.search("experts.colorado.edu") !== -1) {
+ var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-34751034-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+}
+</script>
+
+
+    </body>
+</html>
+
