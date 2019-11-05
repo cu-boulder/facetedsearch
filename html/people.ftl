@@ -46,56 +46,6 @@ var i18nStrings = {
 
 
 
-<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
-    </head>
-    
-    <body class="people" onload="">
-        <div id="banner">
-
-<header id="branding" role="banner">
-    <h1 class="vivo-logo"><a title="CU Experts | research & expertise across CU Boulder" href="/"><span class="displace">CU Experts</span></a></h1>
-
-    <nav role="navigation">
-     
-    </nav>
-    
-    <section id="ucb-search" role="region">
-
-        <div id="ucb-searchform">
-	    <form action="/search" name="search" role="search">
-	        <div id="ucb-inputwrapper">
-		    <input type="text" class="ucb-text" name="querytext"
-		    placeholder="Search CU Experts" size="15" maxlength="128"/>
-                </div>
-                <div id="edit-actions">
-                    <input type="submit" id="edit-submit" value="Search">
-                </div>
-                <!-- <input type="image" src="/themes/cu-boulder/images/ucb-submit.png" value="Search" size="22,23" border="0" /> -->
-            </form>
-        </div>
-        <div id="ucb-culinks"><strong>CU:</strong>
-              <a href="http://www.colorado.edu/">Home</a> &bull; <a
-              href="http://www.colorado.edu/atoz/">A to Z</a> &bull; <a
-              href="http://www.colorado.edu/campusmap/">Campus Map</a>
-        </div>
-    </section>
-</header>
-        
-
-<nav id="top-nav" role="navigation">
-    <ul id="main-nav" role="list">
-            <li role="listitem"><a href="/" title="menu item" >Home</a></li>
-            <li role="listitem"><a href="/people" title="menu item"  class="selected" >People</a></li>
-            <li role="listitem"><a href="/organizations" title="menu item" >Organizations</a></li>
-            <li role="listitem"><a href="/publications" title="menu item" >Publications</a></li>
-            <li role="listitem"><a href="/honors" title="menu item" >Honors</a></li>
-            <li role="listitem"><a href="/research" title="menu item" >Research</a></li>
-            <li role="listitem"><a href="/international" title="menu item" >International</a></li>
-            <li role="listitem"><a href="/forIndustry" title="menu item" >Industry</a></li>
-            <li role="listitem"><a href="/about" title="menu item" >About</a></li>
-    </ul>
-</nav>
-</div>
 <div id="wrapper-content" role="main">        
     
     <!--[if lte IE 8]>
@@ -486,45 +436,6 @@ var i18nStrings = {
         
 
 </div> <!-- #wrapper-content -->
-
-<footer role="contentinfo">
-    <p class="copyright">
-            <small>&copy;2019
-            Regents of the University of Colorado
-             | <a class="terms" href="/termsOfUse" title="terms of use">Terms of Use</a></small> | 
-        Powered by <a class="powered-by-vivo" href="http://vivoweb.org" target="_blank" title="powered by VIVO"><strong>VIVO</strong></a>
-	        <br/> Data updated last 11/7/2013 4:00 AM
-	        <br/> University of Colorado Boulder / CU Boulder
-                <br/> Fundamental data on national and international awards provided by Academic Analytics.
-    </p>
-    
-    <nav role="navigation">
-        <ul id="footer-nav" role="list">
-            <li role="listitem"><a href="/about" title="about">About</a></li>
-        </ul>
-    </nav>
-</footer>
-
-
-
-
-
-
-
-
-<script type="text/javascript">  
-if (document.location.hostname.search("experts.colorado.edu") !== -1) {
- var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-34751034-1']);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-}
-</script>
 
 
     </body>
