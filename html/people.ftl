@@ -88,9 +88,13 @@ var i18nStrings = {
                 <div class="person-body">
                 <div class="thumbnail">
                     {{#if thumbnail}}
+                      <a href="{{uri}}" target="_blank">
                        <img src="{{thumbnail}}">
+                       </a>
                     {{else}}
+                      <a href="{{uri}}" target="_blank">
                        <img src="https://vivo-cub-dev.colorado.edu/images/placeholders/thumbnail.jpg">
+                       </a>
                     {{/if}}
                     <div class="caption">
                     <strong>
@@ -367,18 +371,20 @@ var i18nStrings = {
 
 .dropdown {
   float: left;
+  position: absolute;
   overflow: hidden;
 }
 
 .dropdown .dropbtn {
   font-size: 14px;  
-  border: none;
   outline: none;
   color: black;
   padding: 4px 6px;
   background-color: inherit;
   font-family: inherit;
   margin: 0;
+  border-radious: 4px;
+  
 }
 
 .navbar a:hover, .dropdown:hover .dropbtn {
@@ -387,20 +393,26 @@ var i18nStrings = {
 
 .dropdown-content {
   display: none;
-  background-color: #f9f9f9;
+  background-color: azure;
   min-width: 160px;
   box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
   z-index: 1;
+  border: 1px solid;
+  width: 600px;
+  padding: 12px;
 }
 
 .dropdown-content a {
   float: none;
   color: black;
-  padding: 12px 16px;
   text-decoration: none;
   display: block;
   text-align: left;
+  background-color: azure;
+  border: 1px solid;
+  margin: 2px;
 }
+
 
 .dropdown-content a:hover {
   background-color: #ddd;
@@ -429,8 +441,17 @@ var i18nStrings = {
 
 </head>
 <body>
+  <div class="dropdown">
+    <button 
+      class=btn "dropbtn">Help
+      <i class="fa fa-caret-down"></i>
+    </button>
+    <div class="dropdown-content">
+<h3> PEOPLE SEARCH </h3> Use the People Search bar directly below or the expandable Filters at left to explore Boulder faculty data. To limit search to exact terms use double quotes (" ").  Search also allows for wildcard searching by using the wildcard character (*). The filters on the left, such as Research Area, are  only searching the Research Area keywords. To search CU Experts without the filters in order to include all research fields, use the site search bar in the CU Experts page header. Filters default to 'and' logic. Toggle with the 'or' button if desired.
+    </div>
+  </div>
 <div class="facet-view-simple">
-<div class="help"> <h3> PEOPLE SEARCH </h3> Use the People Search bar directly below or the expandable Filters at left to explore Boulder faculty data. People Search allows for wildcard * or exact search with " " double quotations. The research filter is only searching the Research Keywords, not the free-text keywords or research overview. To search VIVO without the filters in order to include all research fields, use the site search bar in the VIVO page header. Filters default to 'and' logic. Toggle with the 'or' button if desired.</div>
+</div>
 </body>
 </html>
 
