@@ -127,19 +127,19 @@ var i18nStrings = {
                     {{/if}}
 
                     {{#if researchArea}}
-                    <div><strong>Research Areas:</strong> {{#expand researchArea 9 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    <div><strong>Research Areas:</strong> {{#expand researchArea 9 uri "#research" }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
                     {{#if awards}}
-                    <div><strong>Honors:</strong> {{#expand awards 10 uri }}<a href="{{award.uri}}" target="_blank">{{award.name}}</a>{{/expand}}</div>
+                    <div><strong>Honors:</strong> {{#expand awards 10 uri "#background"}}<a href="{{award.uri}}" target="_blank">{{award.name}}</a>{{/expand}}</div>
                     {{/if}}
 
                     {{#if courses}}
-                    <div><strong>Courses:</strong> {{#expand courses 5 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    <div><strong>Courses:</strong> {{#expand courses 5 uri "#teaching" }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
                     {{#if homeCountry}}
-                    <div><strong>International Activities:</strong> {{#expand homeCountry 5 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    <div><strong>International Activities:</strong> {{#expand homeCountry 5 uri "#International_Activities"}}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
                 </div>
@@ -187,7 +187,7 @@ var i18nStrings = {
 
 
 
-        Handlebars.registerHelper('expand', function(items, num, url, options) {
+        Handlebars.registerHelper('expand', function(items, num, url, anchor, options) {
             var out = "";
             var z = items.length;
             var j = items.length - 1;
@@ -202,7 +202,7 @@ var i18nStrings = {
                 else {
                   if(x < z) {
                     out += options.fn(items[i]);
-                    out += options.fn({uri: url, name: " ...more"})
+                    out += options.fn({uri: url + anchor, name: " ...more"})
                   } 
                   else {
                     out += options.fn(items[i]);
@@ -443,7 +443,7 @@ var i18nStrings = {
 <body>
   <div class="dropdown">
     <button 
-      class=btn "dropbtn">Help
+      class=btn "dropbtn">help
       <i class="fa fa-caret-down"></i>
     </button>
     <div class="dropdown-content">
