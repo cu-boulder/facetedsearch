@@ -12,6 +12,7 @@ import logging, sys
 import urllib
 import pdb   # Debugging purposes - comment out for production
 import socket
+import time
 
 # import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
 # Also eventually can put more config info in here
@@ -128,16 +129,22 @@ def select(endpoint, query):
         results = sparql.query().convert()
         print("results: ", results)
         return results["results"]["bindings"]
-    except EndPointInternalError:
+    except Exception, e:
         try:
+            print("Error trying sparql.query in select function. Will try again in 2 seconds")
+            #print("Will try again after 1st exception: %s\n" % e)
+            time.sleep(2)
             results = sparql.query().convert()
             print("results: ", results)
             return results["results"]["bindings"]
+        except Exception, x:
+            print("2nd try Error trying sparql.query in select function.")
+            print("Second try failed: %s\n" % x)
+            sys.exit(2)
         except RuntimeWarning:
-            pass
+            sys.exit(2)
     except RuntimeWarning:
-        pass
-
+        sys.exit(2)
 
 def describe(endpoint, query):
     sparql = SPARQLWrapper(endpoint)
@@ -145,16 +152,29 @@ def describe(endpoint, query):
     sparql.setMethod("POST")
     sparql.addParameter("email", EMAIL)
     sparql.addParameter("password", PASSWORD)
+
     try:
-    #    print ("sparql query: ", sparql)
         results = sparql.query().convert()
-    #    print ("Describe passed: ", query)
+        print("results: ", results)
         return results
-    #except RuntimeWarning:
-    except Exception as e:
-        print ("Describe ERROR: ", e)
-        error_message = e.read()
-        print error_message
+    except Exception, e:
+        try:
+            print("Error trying sparql.query in describe function.")
+            print("Will try again after 1st exception: %s\n" % e)
+            time.sleep(2)
+            results = sparql.query().convert()
+            print("results: ", results)
+            return results
+        except Exception, f:
+            print("Error trying sparql.query in describe function.")
+            print "Couldn't do it a second time: %s\n" % f
+            sys.exit(1)
+            pass
+        except RuntimeWarning:
+            sys.exit(1)
+            pass
+    except RuntimeWarning:
+        sys.exit(1)
         pass
 
 
