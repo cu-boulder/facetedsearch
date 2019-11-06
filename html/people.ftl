@@ -100,19 +100,19 @@ var i18nStrings = {
                     <strong>
                     {{#if email}}
                        <div class="weblink">
-                          <a href="mailto:{{email}}" class="fa fa-envelope-square fa-lg"></a>
+                          <a href="mailto:{{email}}" title="Email" class="fa fa-envelope-square fa-lg"></a>
                        </div>
                     {{/if}}
                     {{#if orcid}}
                        <div class="weblink">
-                          <a href="{{orcidURL orcid}}" target="_blank" class="ai ai-orcid fa-lg"></a>
+                          <a href="{{orcidURL orcid}}" target="_blank" title="ORCID" class="ai ai-orcid fa-lg"></a>
                        </div>
                     {{/if}}
                     </strong>
                     {{#if website}}
                       {{#listWebLinks website}}
                           <div class="weblink">
-                             <a href="{{uri}}"` target="_blank" class="{{wclass}} fa-lg"></a>
+                             <a href="{{uri}}"` target="_blank" title="{{name}}" class="{{wclass}} fa-lg"></a>
                           </div>
                       {{/listWebLinks}}
                     {{/if}}
@@ -330,6 +330,10 @@ var i18nStrings = {
             box-shadow: none;
             border: none;
             margin: 1px;
+        }
+
+       .weblink a {
+            text-decoration: none;
         }
 
         #facetview_filter_isDcoMember {
