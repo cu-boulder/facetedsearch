@@ -126,15 +126,16 @@ var i18nStrings = {
                     <div><strong>Research Areas:</strong> {{#expand researchArea 9 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
-                    {{#if homeCountry}}
-                    <div><strong>International Activities:</strong> {{#expand homeCountry 5 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
-                    {{/if}}
                     {{#if awards}}
                     <div><strong>Honors:</strong> {{#expand awards 10 uri }}<a href="{{award.uri}}" target="_blank">{{award.name}}</a>{{/expand}}</div>
                     {{/if}}
 
                     {{#if courses}}
                     <div><strong>Courses:</strong> {{#expand courses 5 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
+                    {{/if}}
+
+                    {{#if homeCountry}}
+                    <div><strong>International Activities:</strong> {{#expand homeCountry 5 uri }}<a href="{{uri}}" target="_blank">{{name}}</a>{{/expand}}</div>
                     {{/if}}
 
                 </div>
