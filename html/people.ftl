@@ -1,60 +1,4 @@
-
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-
-<meta charset="utf-8" />
-<!-- Google Chrome Frame open source plug-in brings Google Chrome's open web technologies and speedy JavaScript engine to Internet Explorer-->
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-
-<title>People | CU Experts | CU Boulder</title>
-
-
-
-<!-- vitro base styles (application-wide) -->
-<link rel="stylesheet" href="/css/vitro.css" />
-
-
-
-<link rel="stylesheet" href="/css/edit.css" /><link rel="stylesheet" href="/themes/cu-boulder/css/screen.css" />
-
-<script>
-var i18nStrings = {
-    allCapitalized: 'All',
-};
-</script>
-<script type="text/javascript" src="/js/jquery.js"></script>
-<script type="text/javascript" src="/js/vitroUtils.js"></script>
-
-<!--[if lt IE 9]>
-<script type="text/javascript" src="/js/html5.js"></script>
-<![endif]-->
-
- 
-
-<!--[if lt IE 7]>
-<link rel="stylesheet" href="/themes/cu-boulder/css/ie6.css" />
-<![endif]-->
-
-<!--[if IE 7]>
-<link rel="stylesheet" href="/themes/cu-boulder/css/ie7.css" />
-<![endif]-->
-
-<!--[if (gte IE 6)&(lte IE 8)]>
-<script type="text/javascript" src="/js/selectivizr.js"></script>
-<![endif]-->
-
-
-
-<div id="wrapper-content" role="main">        
-    
-    <!--[if lte IE 8]>
-    <noscript>
-        <p class="ie-alert">This site uses HTML elements that are not recognized by Internet Explorer 8 and below in the absence of JavaScript. As a result, the site will not be rendered appropriately. To correct this, please either enable JavaScript, upgrade to Internet Explorer 9, or use another browser. Here are the <a href="http://www.enable-javascript.com"  title="java script instructions">instructions for enabling JavaScript in your web browser</a>.</p>
-    </noscript>
-    <![endif]-->
-        
-        <!DOCTYPE html>
 <html>
 <head lang="en">
     <meta charset="UTF-8">
@@ -83,8 +27,6 @@ var i18nStrings = {
     <script id="person-template" type="text/x-handlebars-template">
         <tr>
             <td>
-                </div>
-
                 <div class="person-body">
                 <div class="thumbnail">
                     {{#if thumbnail}}
@@ -143,10 +85,10 @@ var i18nStrings = {
                     {{/if}}
 
                 </div>
-<!--
+<!-- This is a prototype of a dropdown for researchOverview
 {{#if researchOverview}}
   <div class="dropdown">
-/   <button 
+   <button 
       class="dropbtn">Research Overview
       <i class="fa fa-caret-down"></i>
     </button>
@@ -159,7 +101,6 @@ var i18nStrings = {
                 </div>
             </td>
         </tr>
-*/
     </script>
 
     <script type="text/javascript">
@@ -171,21 +112,6 @@ var i18nStrings = {
         Handlebars.registerHelper('showMostSpecificType', function(mostSpecificType) {
             return (mostSpecificType && mostSpecificType != "Person");
         });
-
-        Handlebars.registerHelper('listWebLinks', function(items, options) {
-            var out = "";
-
-            items.sort((a, b) => (a.name < b.name) ? 1 : -1);
-            for(var i = 0; i < items.length; i++) {
-               if (items[i].name == "Twitter") { items[i].wclass = "fa fa-twitter" }
-               if (items[i].name == "LinkedIn") { items[i].wclass = "fa fa-linkedin" }
-               if (items[i].name == "Webpage") { items[i].wclass = "fa fa-globe" }
-               out += options.fn(items[i]);
-            }
-            return out;
-        });
-
-
 
         Handlebars.registerHelper('expand', function(items, num, url, anchor, options) {
             var out = "";
@@ -208,6 +134,23 @@ var i18nStrings = {
                     out += options.fn(items[i]);
                   }
                 }
+            }
+            return out;
+        });
+
+        Handlebars.registerHelper('listWebLinks', function(items, options) {
+            var out = "";
+
+            items.sort(function(a, b) { 
+               if (a.name < b.name) 
+                 { return 1 }
+               else { return -1}
+            });
+            for(var i = 0; i < items.length; i++) {
+               if (items[i].name == "Twitter") { items[i].wclass = "fa fa-twitter" }
+               if (items[i].name == "LinkedIn") { items[i].wclass = "fa fa-linkedin" }
+               if (items[i].name == "Webpage") { items[i].wclass = "fa fa-globe" }
+               out += options.fn(items[i]);
             }
             return out;
         });
@@ -335,16 +278,6 @@ var i18nStrings = {
        .weblink a {
             text-decoration: none;
         }
-
-        #facetview_filter_isDcoMember {
-            display: none; !important;
-            visibility: hidden;
-        }
-
-        #facetview_filter_group_isDcoMember {
-            display: none; !important;
-        }
-
         .help {
             margin: 10px;
             border: 2px solid #c6ebc6;
@@ -377,6 +310,7 @@ var i18nStrings = {
   float: left;
   position: absolute;
   overflow: hidden;
+  z-index: 5;
 }
 
 .dropdown .dropbtn {
@@ -451,19 +385,10 @@ var i18nStrings = {
       <i class="fa fa-caret-down"></i>
     </button>
     <div class="dropdown-content">
-<h3> PEOPLE SEARCH </h3> Use the People Search bar directly below or the expandable Filters at left to explore Boulder faculty data. To limit search to exact terms use double quotes (" ").  Search also allows for wildcard searching by using the wildcard character (*). The filters on the left, such as Research Area, are  only searching the Research Area keywords. To search CU Experts without the filters in order to include all research fields, use the site search bar in the CU Experts page header. Filters default to 'and' logic. Toggle with the 'or' button if desired.
+      <b>SEARCH AND FILTER ON PEOPLE</b><br> The search term bar on the far right filters people whose data matches the term.  Encapsulate your term in  double quotes (" ") for exact matches. The filters on the left below, such as Research Area, are  only searching the Research Area keywords. The filters default to 'and' logic. Toggle with the 'or' button if desired. The filters and search term bar can be combined to help you narrow down the list of people you are interested in. To search all data in  CU Experts use the site search bar in the CU Experts page header. 
     </div>
   </div>
-<div class="facet-view-simple">
-</div>
+  <div class="facet-view-simple"> </div>
 </body>
-</html>
-
-        
-
-</div> <!-- #wrapper-content -->
-
-
-    </body>
 </html>
 
