@@ -12,7 +12,11 @@ import logging, sys
 import urllib
 import pdb   # Debugging purposes - comment out for production
 import socket
+<<<<<<< HEAD
 import time
+=======
+import codecs
+>>>>>>> 1e3e72ce49b76141d24dee2462ba869604df4ff2
 
 # import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
 # Also eventually can put more config info in here
@@ -99,6 +103,8 @@ NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
 
 get_people_query = load_file("queries/listPeople.rq")
 describe_person_query = load_file("queries/describePerson.rq")
+describe_award_query = load_file("queries/describeAward.rq")
+describe_course_query = load_file("queries/describeCourses.rq")
 
 # standard filters
 non_empty_str = lambda s: True if s else False
@@ -115,8 +121,8 @@ def get_id(fis_id):
 
 def select(endpoint, query):
     print("endpoint: ", endpoint)
-    print("EMAIL: ", EMAIL)
-    print("PASSWORD: ", PASSWORD)
+#    print("EMAIL: ", EMAIL)
+#    print("PASSWORD: ", PASSWORD)
 
     endpoint = endpoint
     sparql = SPARQLWrapper(endpoint)
@@ -198,10 +204,23 @@ def describe_person(endpoint, person):
     q = describe_person_query.replace("?person", "<" + person + ">")
     return describe(endpoint, q)
 
+def describe_award(endpoint, person):
+    q = describe_award_query.replace("?person", "<" + person + ">")
+    return describe(endpoint, q)
+
+def describe_courses(endpoint, person):
+    q = describe_course_query.replace("?person", "<" + person + ">")
+    return describe(endpoint, q)
+
 
 def get_fisid(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(FIS_LOCAL.fisId)) \
+        .one().value
+
+def get_researchOverview(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(VIVO.researchOverview)) \
         .one().value
 
 
@@ -253,6 +272,35 @@ def get_email(person):
         .filter(non_empty_str) \
         .one().value
 
+def get_website(person):
+    weblinks = []
+
+    websites = Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
+        .flatmap(lambda v: v.objects(VCARD.hasURL)) \
+        .filter(lambda o: has_type(o,VCARD.URL)).list()
+
+    for website in websites:
+        print("website", website )
+
+        webname = Maybe.of(website).stream() \
+           .filter(has_label) \
+           .map(lambda t: str(t.label())) \
+           .filter(non_empty_str) \
+           .one().value[0]
+        print("webname", webname)
+
+        weburl = Maybe.of(website).stream() \
+           .flatmap(lambda e: e.objects(VCARD.url)) \
+           .map(lambda r: r.value) \
+           .one().value
+        print("weburl", weburl)
+
+        if weburl:
+           weblinks.append({"name": webname, "uri": weburl})
+
+    return weblinks
+
 
 def get_research_areas(person):
     return Maybe.of(person).stream() \
@@ -274,7 +322,7 @@ def get_organizations(person):
             .flatmap(lambda r: r.objects(VIVO.relates)) \
             .filter(lambda o: has_type(o, FOAF.Organization)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}).one().value
+            .map(lambda o: {"uri": str(o.identifier), "name": o.label()}).one().value
 
         if organization:
             organizations.append(organization)
@@ -292,7 +340,6 @@ def get_home_country(person):
         .filter(has_label) \
         .map(lambda r: {"uri": BASE_URL + '?uri=' + urllib.quote_plus(str(r.identifier)), "name": str(r.label().encode('utf-8'))}).list()
 
-
 def get_affiliations(person):
     affiliations = []
 
@@ -305,13 +352,87 @@ def get_affiliations(person):
             .flatmap(lambda r: r.objects(VIVO.relates)) \
             .filter(lambda o: has_type(o, FOAF.Organization)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}) \
+            .map(lambda o: {"uri": str(o.identifier), "name": o.label()}) \
             .one().value
 
         if organization:
             affiliations.append({"position": str(position.label()), "org": organization})
 
     return affiliations
+
+
+def get_courses(coursesgraph):
+    courses = []
+
+    print("In get_courses")
+
+    instructors = Maybe.of(coursesgraph).stream() \
+        .flatmap(lambda per: per.objects(OBO.RO_0000053)).list() 
+
+#    print("got instructors: ", instructors)
+
+    for instructor in instructors:
+#        print("in instructor loop")
+#        print("instructor: ", instructor)
+
+        course = Maybe.of(instructor).stream() \
+            .flatmap(lambda o: o.objects(OBO.BFO_0000054)) \
+            .filter(has_label) \
+            .map(lambda o: {"uri": str(o.identifier), "name": o.label()[0:o.label().find(" -")]}) \
+            .one().value
+        if course:
+#            print("course exists: ", course)
+            courses.append(course)
+
+    return courses
+
+
+def get_awards(awardgraph):
+    awards = []
+
+#    print("In get_awards")
+
+    receipts = Maybe.of(awardgraph).stream() \
+        .flatmap(lambda per: per.objects(VIVO.relatedBy)) \
+        .filter(lambda related: has_type(related, VIVO.AwardReceipt)).list()
+
+#    print("got award receipts")
+
+    for receipt in receipts:
+#        print("in award receipt loop")
+#        print(receipt)
+
+        award = Maybe.of(receipt).stream() \
+            .flatmap(lambda r: r.objects(VIVO.relates)) \
+            .filter(lambda o: has_type(o, VIVO.Award)) \
+            .filter(has_label) \
+            .map(lambda o: {"uri": o.identifier, "name": o.label()}) \
+            .one().value
+
+        awarddate = Maybe.of(receipt).stream() \
+            .flatmap(lambda r: r.objects(VIVO.dateTimeValue)) \
+            .flatmap(lambda d: d.objects(VIVO.dateTime)) \
+            .one().value
+
+        awardyear = str(awarddate)[:4]
+
+#        print("Awarddate: ", awardyear)
+
+        awardorg = Maybe.of(receipt).stream() \
+            .flatmap(lambda r: r.objects(VIVO.relates)) \
+            .filter(lambda o: has_type(o, VIVO.Award)) \
+            .flatmap(lambda a: a.objects(VIVO.assignedBy)) \
+            .map(lambda a: {"uri": str(a.identifier), "name": a.label()}) \
+            .one().value
+#        print("Awardorg: ", awardorg)
+
+
+        if award:
+#            print("award exists: ", award)
+            awards.append({"award": award, "awardorg": awardorg, "awardyear": awardyear})
+#            print("awards: ", awards)
+
+    return awards
 
 
 def get_thumbnail(person):
@@ -328,7 +449,7 @@ def create_person_doc(person, endpoint):
     logging.info('create_person_doc: %s', person)
     logging.debug('about to describe person: %s', person)
     graph = describe_person(endpoint=endpoint, person=person)
-    print("graph:", graph)
+#    print("graph:", graph)
     sys.stdout.flush()
     logging.debug('about to create graph resource for : %s', person)
     try:
@@ -339,9 +460,36 @@ def create_person_doc(person, endpoint):
         logging.info('graph is : %s', graph)
         return {}
 
+    logging.debug('about to describe award: %s', person)
+    grapha = describe_award(endpoint=endpoint, person=person)
+#    print("grapha:", grapha)
+    sys.stdout.flush()
+    logging.debug('about to create award graph resource for : %s', person)
+    try:
+        award = grapha.resource(person)
+    except:
+        print("Can't create award graph for:", person)
+        logging.info('failed to create award graph for : %s', person)
+        logging.info('award graph is : %s', grapha)
+        return {}
+
+    logging.debug('about to describe courses: %s', person)
+    graphc = describe_courses(endpoint=endpoint, person=person)
+#    print("graphc:", graphc)
+    sys.stdout.flush()
+    logging.debug('about to create courses graph resource for : %s', person)
+    try:
+        coursesgraph = graphc.resource(person)
+    except:
+        print("Can't create courses graph for:", person)
+        logging.info('failed to create courses graph for : %s', person)
+        logging.info('courses graph is : %s', graphc)
+        return {}
+
+
     logging.debug('check label: %s', person)
     try:
-        print("person has label:", per.label())
+#        print("person has label:", per.label())
         name = per.label()
     except AttributeError:
         print("missing name:", person)
@@ -355,6 +503,10 @@ def create_person_doc(person, endpoint):
     orcid = get_orcid(per)
     if orcid:
         doc.update({"orcid": orcid})
+
+    researchOverview = get_researchOverview(per)
+    if researchOverview:
+        doc.update({"researchOverview": researchOverview})
 
     most_specific_type = get_most_specific_type(per)
     if most_specific_type:
@@ -371,6 +523,10 @@ def create_person_doc(person, endpoint):
     email = get_email(per)
     if email:
         doc.update({"email": email})
+
+    website = get_website(per)
+    if website:
+        doc.update({"website": website})
 
     research_areas = get_research_areas(per)
     if research_areas:
@@ -392,6 +548,17 @@ def create_person_doc(person, endpoint):
     affiliations = get_affiliations(per)
     if affiliations:
         doc.update({"affiliations": affiliations})
+
+    awards = get_awards(award)
+    if awards:
+        doc.update({"awards": awards})
+        doc.update({"awardreceived": "yes"})
+ 
+#    print("coursesgraph: ", coursesgraph)
+    courses = get_courses(coursesgraph)
+    if courses:
+        doc.update({"courses": courses})
+        doc.update({"taughtcourse": "yes"})
 
     logging.debug('Person doc: %s', doc)
     #pdb.set_trace()
@@ -431,9 +598,9 @@ def publish(bulk, endpoint, rebuild, mapping):
         print "putting map file"
         if r.status_code != requests.codes.ok:
             print r.status_code, r.content
+
             # new mapping may be incompatible with previous
             # delete current mapping and re-push
-
             requests.delete(mapping_url, verify=False)
             print "failed. deleting..."
             r = requests.put(mapping_url, data=mapping_file, verify=False)
@@ -461,7 +628,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--threads', default=8, help='number of threads to use (default = 8)')
+    parser.add_argument('--threads', default=1, help='number of threads to use (default = 8)')
     parser.add_argument('--es', default="http://localhost:9200/", help="elasticsearch service URL")
     parser.add_argument('--publish', default=False, action="store_true", help="publish to elasticsearch?")
     parser.add_argument('--index', default='fis', help='name of index, needs to correlate with javascript library')
