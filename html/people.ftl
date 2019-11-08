@@ -35,7 +35,7 @@
                        </a>
                     {{else}}
                       <a href="{{uri}}" target="_blank">
-                       <img src="https://vivo-cub-dev.colorado.edu/images/placeholders/thumbnail.jpg">
+                       <img src="/images/placeholders/thumbnail.jpg">
                        </a>
                     {{/if}}
                     <div class="caption">
