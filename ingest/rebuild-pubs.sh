@@ -5,23 +5,24 @@ outdir="spool/${dstamp}"
 mkdir $outdir
 logfile="${outdir}/rebuild-pubs.out"
 echo "CREATING ES DOCUMENTS" # > $logfile
-python ./ingest-publications.py --index ${indexname} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} ${outdir}/allpubs.idx  # >> $logfile 2>&1
+python ./ingest-publications.py --index ${indexname} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} ${outdir}/allpubs.idx   >> $logfile 2>&1
 EXITCODE=$?
 if [ $EXITCODE -ne 0 ]
 then
-  echo "NON ZERO EXITCODE: $EXITCODE" #>>$logfile 2>&1
+  echo "NON ZERO EXITCODE: $EXITCODE" >>$logfile 2>&1
+  cat $logfile | mailx -s "ERROR: rebuild-pubs.sh - error in ingest-publications.py" elsborg@colorado.edu
   exit
 fi
 
 outputsize=`wc -l ${outdir}/allpubs.idx | awk  '{print $1}'`
 echo "$outputsize lines in ${outdir}/allpubs.idx"
-if [ $outputsize -lt 50 ]
+if [ $outputsize -lt 75000 ]
 then
-  echo "Not enough lines in output: ${outdir}/allpubs.idx" #>>$logfile 2>&1
+  echo "Not enough lines in output. Amount of lines: $outputsize. File: ${outdir}/allpubs.idx" >>$logfile 2>&1
+  cat $logfile | mailx -s "ERROR: rebuild-pubs.sh - not enough lines in json file" elsborg@colorado.edu
   exit
 fi
 
-exit
 echo "Index counts prior to run" >> $logfile
 ./idx_get_count.sh $indexname >> $logfile
 curl -XDELETE localhost:9200/${indexname} >> $logfile
