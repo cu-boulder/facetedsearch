@@ -179,8 +179,8 @@ def load_file(filepath):
 
 def describe(sparqlendpoint, query):
     print("sparqlendpoint: ", sparqlendpoint)
-    print("EMAIL: ", EMAIL)
-    print("PASSWORD: ", PASSWORD)
+#    print("EMAIL: ", EMAIL)
+#    print("PASSWORD: ", PASSWORD)
     sparql = SPARQLWrapper(sparqlendpoint)
     sparql.setQuery(query)
     sparql.setMethod("POST")
@@ -189,7 +189,7 @@ def describe(sparqlendpoint, query):
     logging.debug('logging - describe query: %s', query)
     try:
         results = sparql.query().convert()
-        print("results: ", results)
+#        print("results: ", results)
         return results
     except Exception, e:
         try:
@@ -202,11 +202,11 @@ def describe(sparqlendpoint, query):
         except Exception, f:
             print("Error trying sparql.query in describe function.")
             print "Couldn't do it a second time: %s\n" % f
-            pass
+            sys.exit(1)
         except RuntimeWarning:
-            pass
+            sys.exit(1)
     except RuntimeWarning:
-        pass
+        sys.exit(1)
 
 def create_publication_doc(pubgraph,publication):
 
@@ -227,7 +227,7 @@ def create_publication_doc(pubgraph,publication):
     doi = doi[0].toPython() if doi else None
     ams = 0
     if doi:
-        print("found DOI:", doi)
+#        print("found DOI:", doi)
         doc.update({"doi": doi})
         j = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
         try:
@@ -235,7 +235,7 @@ def create_publication_doc(pubgraph,publication):
         except NameError:
            print ("No altmetric results for doi", doi)
         else:
-           print("altmetric returned", doi)
+#           print("altmetric returned", doi)
            if isinstance(j, dict):
              #print("altmetric score", j['score'])
              #if j['score']:
@@ -247,7 +247,7 @@ def create_publication_doc(pubgraph,publication):
     cuscholar = list(pub.objects(predicate=PUBS.cuscholar))
     cuscholar = cuscholar[0].toPython() if cuscholar else None
     if cuscholar:
-        print("found cuscholar:", cuscholar)
+#        print("found cuscholar:", cuscholar)
         doc.update({"cuscholar": cuscholar})
         doc.update({"cuscholarexists": "CU Scholar"})
 
@@ -389,7 +389,7 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_author_query)
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
     print("EMAIL: ", EMAIL)
-    print("PASSWORD: ", PASSWORD)
+#    print("PASSWORD: ", PASSWORD)
 
     records = generate(threads=int(args.threads))
     print "generated records"
