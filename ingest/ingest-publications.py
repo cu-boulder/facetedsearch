@@ -293,6 +293,12 @@ def create_publication_doc(pubgraph,publication):
     if most_specific_type:
         doc.update({"mostSpecificType": most_specific_type})
 
+    keywords = []
+    for keyword in  pub.objects(predicate=VIVO.freetextKeyword):
+       print("keyword:", keyword.encode('utf-8'))
+       keywords.append({"name": keyword})
+    doc.update({"keywords": keywords})
+
     date_time_object = list(pub.objects(predicate=VIVO.dateTimeValue))
     date_time_object = date_time_object[0] if date_time_object else None
     if date_time_object is not None:

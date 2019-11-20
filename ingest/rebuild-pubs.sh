@@ -5,7 +5,7 @@ outdir="spool/${dstamp}"
 mkdir $outdir
 logfile="${outdir}/rebuild-pubs.out"
 echo "CREATING ES DOCUMENTS" # > $logfile
-python ./ingest-publications.py --index ${indexname} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} ${outdir}/allpubs.idx   >> $logfile 2>&1
+python ./ingest-publications.py --index ${indexname} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} ${outdir}/allpubs.idx # >> $logfile 2>&1
 EXITCODE=$?
 if [ $EXITCODE -ne 0 ]
 then

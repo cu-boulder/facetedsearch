@@ -35,6 +35,7 @@ CONSTRUCT
      ?publication bibo:numPages ?numpages .
      ?publication bibo:volume ?volume .
      ?publication pubs:citedAuthors ?authors .
+    ?publication vivo:freetextKeyword ?keyword .
 }
 WHERE
 {
@@ -46,6 +47,7 @@ WHERE
    ?authorship rdf:type vivo:Authorship .
    ?authorship vivo:relates ?author .
    OPTIONAL { ?publication bibo:doi ?doi }
+   OPTIONAL { ?publication vivo:freetextKeyword ?keyword }
    OPTIONAL { ?publication pubs:cuscholar ?cuscholar }
    OPTIONAL { ?publication bibo:abstract ?abstract }
    OPTIONAL { ?publication bibo:pageEnd ?pageend }
@@ -61,4 +63,3 @@ WHERE
               ?venue rdfs:label ?venueLabel
             }
 }
-
