@@ -389,10 +389,8 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_author_query)
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
     print("EMAIL: ", EMAIL)
-#    print("PASSWORD: ", PASSWORD)
 
     records = generate(threads=int(args.threads))
     print "generated records"
     with open(args.out, "w") as bulk_file:
       bulk_file.write('\n'.join(records))
-
