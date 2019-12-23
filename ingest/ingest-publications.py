@@ -141,7 +141,7 @@ def get_research_areas(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(VIVO.hasResearchArea)) \
         .filter(has_label) \
-        .map(lambda r: {"uri": str(r.identifier), "name": str(r.label())}).list()
+        .map(lambda r: {"uri": r.identifier, "name": r.label()}).list()
 
 
 def get_organizations(person):
@@ -157,7 +157,7 @@ def get_organizations(person):
             .flatmap(lambda r: r.subjects(VIVO.relatedBy)) \
             .filter(lambda o: has_type(o, FOAF.Organization)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": str(o.identifier), "name": str(o.label())}).one().value
+            .map(lambda o: {"uri": o.identifier, "name": o.label()}).one().value
 
         if organization:
             organizations.append(organization)
@@ -169,7 +169,7 @@ def get_metadata(id):
 
 def has_type(resource, type):
     for rtype in resource.objects(predicate=RDF.type):
-        if str(rtype.identifier) == str(type):
+        if rtype.identifier == type:
             return True
     return False
 
@@ -309,9 +309,9 @@ def create_publication_doc(pubgraph,publication):
     venue = list(pub.objects(VIVO.hasPublicationVenue))
     venue = venue[0] if venue else None
     if venue and venue.label():
-        doc.update({"publishedIn": {"uri": str(venue.identifier), "name": venue.label().encode('utf8')}})
+        doc.update({"publishedIn": {"uri": venue.identifier, "name": venue.label().encode('utf8')}})
     elif venue:
-        print("venue missing label:", str(venue.identifier))
+        print("venue missing label:", venue.identifier)
 
     authors = []
     for s, p, o in pubgraph.triples((None, VIVO.relates, None)):
@@ -389,10 +389,8 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_author_query)
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
     print("EMAIL: ", EMAIL)
-#    print("PASSWORD: ", PASSWORD)
 
     records = generate(threads=int(args.threads))
     print "generated records"
     with open(args.out, "w") as bulk_file:
       bulk_file.write('\n'.join(records))
-
