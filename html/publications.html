@@ -6,27 +6,49 @@
 
    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.1/handlebars.min.js"></script>
 
-    <script type="text/javascript" src="/themes/cu-boulder/facetview2/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
-    <link rel="stylesheet" href="/themes/cu-boulder/facetview2/vendor/bootstrap/css/bootstrap.min.css">
-    <script type="text/javascript" src="/themes/cu-boulder/facetview2/vendor/bootstrap/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="/themes/cu-boulder/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
-    <script type="text/javascript" src="/themes/cu-boulder/facetview2/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
+    <script type="text/javascript" src="facetviewDavid/vendor/jquery/1.7.1/jquery-1.7.1.min.js"></script>
+    <link rel="stylesheet" href="facetviewDavid/vendor/bootstrap/css/bootstrap.min.css">
+    <script type="text/javascript" src="facetviewDavid/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="facetviewDavid/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css">
+    <script type="text/javascript" src="facetviewDavid/vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js"></script>
 
-    <script type="text/javascript" src="/themes/cu-boulder/facetview2/es.js"></script>
-    <script type="text/javascript" src="/themes/cu-boulder/facetview2/bootstrap2.facetview.theme.js"></script>
-    <script type="text/javascript" src="/themes/cu-boulder/facetview2/jquery.facetview2.js"></script>
+    <script type="text/javascript" src="facetviewDavid/es.js"></script>
+    <script type="text/javascript" src="facetviewDavid/bootstrap2.facetview.theme.js"></script>
+    <script type="text/javascript" src="facetviewDavid/jquery.facetview2.js"></script>
 
-    <link rel="stylesheet" href="/themes/cu-boulder/facetview2/css/facetview.css">
-    <link rel="stylesheet" href="/themes/cu-boulder/browsers.css">
+    <link rel="stylesheet" href="facetviewDavid/css/facetview.css">
+    <link rel="stylesheet" href="browsers.css">
 
    <script type='text/javascript' src='https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js?key=03b271189da4460eab0b761f3cd850fa'></script>
+   <!-- Global site tag (gtag.js) - Google Analytics -->
+   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-64413200-6"></script>
+   <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-64413200-6');
+   </script>
+
+   <!-- Google Analytics -->
+   <script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-64413200-6', 'auto');
+ga('send', 'pageview');
+   </script>
+   <!-- End Google Analytics -->
+
+
 
     <script type="text/javascript">
         jQuery(document).ready(function($) {
             $('.facet-view-simple').facetview({
-                search_url: '/es/fispubs-v1/publication/_search',
+                search_url: 'https://experts.colorado.edu/es/fispubs-v1/publication/_search',
                 page_size: 20,
-                sort: [{"publicationYear.keyword" : {"order" : "desc"}}],
+                sort: [{"publicationDate" : {"order" : "desc"}}],
                 sharesave_link: true,
                 search_button: true,
                 default_freetext_fuzzify: "*",
@@ -41,12 +63,12 @@
                     //Example of date range histogram for future // {"field": "publicationYear", "display": "Publication Year", "type" : "date_histogram", "open" : false,"sort":"desc", "size" : 25},
                     {'field': 'authors.organization.name.keyword', 'display': 'Author Organization'},
                     {'field': 'authors.researchArea.name.keyword', 'display': 'Author Research Area'},
-		    {'field': 'amscore', 'display': 'Altmetric Range', "type" : "range", "range" : [{"to" : 0.001, "display" : "0 or no value"}, {"from" : 0.001, "to" :  100, "display" : "1 - 99"}, {"from" : 100, "to" : 500, "display" : "100 - 499"}, {"from" : 500, "display" : "500+"}], 'sort':'desc', "size" : 25},
+		    {'field': 'amscore', 'display': 'Altmetric Range', "type" : "range", "range" : [{"to" : 0.001, "display" : "0 or no value"}, {"from" : 0.001, "to" :  100, "display" : "1 - 99"}, {"from" : 100, "to" : 500, "display" : "100 - 499"}, {"from" : 500, "display" : "500+"}], 'sort':'desc', "size" : 25 },
                 ],
                 search_sortby: [
-                    {'display':'Title','field':'name.keyword'},
                     {'display':'Date','field':'publicationDate'},
-                    {'display':'Altmetric Attention','field':'amscore'}
+                    {'display':'Altmetric Attention','field':'amscore'},
+                    {'display':'Title','field':'name.keyword'}
                 ],
                 render_result_record: function(options, record)
                 {
@@ -56,9 +78,10 @@
                     var escapedDOI = encodeURIComponent(doi).replace(/-/g, "--");
                     var doiBadgeURL = "https://img.shields.io/badge/DOI-" + escapedDOI + "-blue.svg";
                     var html = "<tr><td>";
+		    
 
                     if (record["name"]) {
-                        html += "<strong><h4><a href=\""+record["uri"]+"\" target=\"_blank\">"+record["name"]+"</a></h4></strong>";
+                        html += "<strong><h4><a href=\""+record["uri"]+"\" target=\"_blank\" onclick=\"ga('send', 'event', 'Experts Link', this.href, 'Publication Label'); return true;\" >"+record["name"]+"</a></h4></strong>";
                     }
 
                     if (record["publicationDate"]) {
@@ -73,7 +96,7 @@
                     if (record["authors"]) {
                         html += "<br /><span><small>CU Boulder Authors: ";
                         for (var i = 0; i < record["authors"].length; i++) {
-                            html += "<a href=\"" + record["authors"][i]["uri"] + "\" target=\"_blank\">" + record["authors"][i]["name"] + "</a>";
+                            html += "<a href=\"" + record["authors"][i]["uri"] + "\" target=\"_blank\" target=\"_blank\" onclick=\"ga('send', 'event', 'Experts Link', this.href); return true;\" >" + record["authors"][i]["name"] + "</a>";
                             if (i < record["authors"].length - 1) {
                                 html += "; ";
                             }
@@ -84,7 +107,7 @@
                     if (record["subjectArea"]) {
                         html += "<br /><span>Subject Areas: ";
                         for(var i = 0; i < record["subjectArea"].length; i++) {
-                            html += "<a href=\"" + record["subjectArea"][i]["uri"] + "\" target=\"_blank\">" + record["subjectArea"][i]["name"] + "</a>";
+                            html += "<a href=\"" + record["subjectArea"][i]["uri"] + "\" target=\"_blank\" target=\"_blank\" onclick=\"ga('send', 'event', 'download', this.href); return true;\" >" + record["subjectArea"][i]["name"] + "</a>";
                             if (i < record["subjectArea"].length - 1) {
                                 html += "; ";
                             }
@@ -93,11 +116,11 @@
                     }
 
                     if (record["publishedIn"]) {
-                        html += "<br /><span>Published in: <a href=\""+record["publishedIn"]["uri"]+"\" target=\"_blank\">"+record["publishedIn"]["name"]+"</a></span>";
+                        html += "<br /><span>Published in: <a href=\""+record["publishedIn"]["uri"]+"\" target=\"_blank\" target=\"_blank\" onclick=\"ga('send', 'event', 'download', this.href); return true;\" >"+record["publishedIn"]["name"]+"</a></span>";
                     }
 
                     if (record["presentedAt"]) {
-                        html += "<br /><span>Presented at: <a href=\""+record["presentedAt"]["uri"]+"\" target=\"_blank\">"+record["presentedAt"]["name"]+"</a></span>";
+                        html += "<br /><span>Presented at: <a href=\""+record["presentedAt"]["uri"]+"\" target=\"_blank\" target=\"_blank\" onclick=\"ga('send', 'event', 'download', this.href); return true;\" >"+record["presentedAt"]["name"]+"</a></span>";
                     }
 
                     // Badges
@@ -105,10 +128,10 @@
                     html += "<div class='badge'>"
 
                     if (record["doi"]) {
-                        html += "<br /><span><a href=\""+doiUrl+"\" target=\"_blank\"><img src=" + doiBadgeURL + "></a></span>";
+                        html += "<br /><span><a href=\""+doiUrl+"\" target=\"_blank\" target=\"_blank\" onclick=\"ga('send', 'event', 'download', this.href); return true;\" ><img src=" + doiBadgeURL + "></a></span>";
                     } 
 
-                   html += "<div class='altmetric-embed' data-link-target='_blank' data-hide-no-mentions='true' data-badge-popover='left' data-doi=\""+record["doi"]+"\"></div>"
+                   html += "<div class='altmetric-embed' data-link-target='_blank' onclick=\"ga('send','event','altmetric-link',this.href); return true;\" data-hide-no-mentions='true' data-badge-popover='left' data-doi=\""+record["doi"]+"\"></div>"
 
                     html += "</div>"
 
@@ -120,6 +143,7 @@
                 show_filter_logic: true,
             });
         });
+
 
     </script>
 
