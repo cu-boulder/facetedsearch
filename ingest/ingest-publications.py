@@ -130,11 +130,25 @@ def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
     else:
         return None
 
+def get_email(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
+        .flatmap(lambda v: v.objects(VCARD.hasEmail)) \
+        .flatmap(lambda e: e.objects(VCARD.email)) \
+        .filter(non_empty_str) \
+        .one().value
+
+
 def get_orcid(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(VIVO.orcidId)) \
         .map(lambda o: o.identifier) \
         .map(lambda o: o[o.rfind('/') + 1:]).one().value
+
+def get_fisid(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(FIS_LOCAL.fisId)) \
+        .one().value
 
 
 def get_research_areas(person):
@@ -325,6 +339,14 @@ def create_publication_doc(pubgraph,publication):
           orcid = get_orcid(per)
           if orcid:
               obj.update({"orcid": orcid})
+
+          email = get_email(per)
+          if email:
+             obj.update({"email": email})
+
+          logging.debug('check fisid: %s', person)
+          fis = get_fisid(per)
+          obj.update({"fisId": fis})
 
           organizations = get_organizations(per)
           if organizations:
