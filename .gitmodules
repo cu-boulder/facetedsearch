@@ -1,0 +1,3 @@
+[submodule "facetview-HTML"]
+	path = facetview-HTML
+	url = git@github.com:cu-boulder/facetview-HTML.git
