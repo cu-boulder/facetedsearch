@@ -12,10 +12,43 @@ import pdb   # Debugging purposes - comment out for production
 import socket
 import time
 import os
+from elasticsearch import Elasticsearch, RequestsHttpConnection
+from elasticsearch.helpers import parallel_bulk
+from collections import deque
+from requests_aws4auth import AWS4Auth
+from datetime import datetime
+import boto3
+import glob
+import json
+import os
+
+#index="fispubs-setup-news"
+index="fis"
+host = 'search-experts-pubs-unoedenr36fpm7alfpboeihcnq.us-east-2.es.amazonaws.com'
+service = 'es'
+region = 'us-east-2'
+
+credentials = boto3.Session().get_credentials()
+awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
+
+es = Elasticsearch(
+    hosts = [{'host': host, 'port': 443}],
+    http_auth = awsauth,
+    use_ssl = True,
+    verify_certs = True,
+    connection_class = RequestsHttpConnection
+)
+
+es.indices.delete(index=index, ignore=[400, 404])
 
 # import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
 # Also eventually can put more config info in here
 from vivoapipw import *
+logging.basicConfig(filename='example.log',level=logging.DEBUG)
+
+#logger = logging.getLogger('simple_example')
+#logger.setLevel(logging.DEBUG)
+
 
 g1 = Graph()
 
@@ -44,6 +77,7 @@ PUBS = Namespace("https://experts.colorado.edu/ontology/pubs#")
 # standard filters
 non_empty_str = lambda s: True if s else False
 has_label = lambda o: True if o.label() else False
+print("PID: ", str(os.getpid))
 
 class Maybe:
     def __init__(self, v=None):
@@ -344,10 +378,10 @@ def create_publication_doc(pubgraph,publication):
 
 def process_publication(publication):
     pid = str(os.getpid())
-    logfile = args.spooldir + '/log-' + pid
     idxfile = args.spooldir + '/idx-' + pid
     fidx=open(idxfile, 'a+')
-    logging.info('Processing Publication: %s', publication)
+    print("Process: ", pid, "; Publication: ", publication)
+    logging.info('%s Processing Publication: %s', pid, publication)
     if publication.find("pubid_") == -1:
        logging.info('INVALID PUBLICATION: %s', publication) 
        return []
@@ -358,16 +392,23 @@ def process_publication(publication):
         pub = create_publication_doc(pubgraph=pubgraph, publication=publication)
         es_id = pub["pubId"] if "pubId" in pub and pub["pubId"] is not None else pub["uri"]
         logging.debug('es_id: %s', es_id)
-    record = [json.dumps(get_metadata(es_id)), json.dumps(pub)]
-    fidx.write('\n'.join(record) + "\n")
-    return [json.dumps(get_metadata(es_id)), json.dumps(pub)]
+    pubdoc = json.dumps(pub)
+#    res = es.index(index="fis-test-1", id=es_id, body=pubdoc)
+#    print(res['result'])
+
+#    record = [json.dumps(get_metadata(es_id)), json.dumps(pub)]
+#    fidx.write('\n'.join(record) + "\n")
+#    return json.dumps(pubdoc)
+#  return [json.dumps(get_metadata(es_id)), json.dumps(pub)]
+    return [json.dumps(pub)]
     fidx.close()
 
 def generate(threads):
     pool = multiprocessing.Pool(threads)
     params = [pub for pub in g1.subjects(RDF.type, BIBO.Document)]
     print("params: ", params)
-    return list(chain.from_iterable(pool.map(process_publication, params)))
+    plist = list(chain.from_iterable(pool.map(process_publication, params)))
+    return plist
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -390,7 +431,27 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
     print("EMAIL: ", EMAIL)
 
+    chunk = 500
+    numchunks = 0
     records = generate(threads=int(args.threads))
+    rlen=len(records)
+    pubrecords = []
+    pubdoc={}
+    for i in range(rlen):
+        pubdata=json.loads(records[i])
+        pubmetadata=get_metadata(pubdata["pubId"])
+        #pubdoc.update({"pubmetadata:": pubmetadata})
+        #pubdoc.update({"pubdata:": pubdata})
+        pubrecords.append(json.dumps(pubmetadata))
+        pubrecords.append(json.dumps(pubdata))
+        numchunks += 1
+        dochunk = numchunks % chunk
+        if dochunk == 0:
+            print("chunks: ", numchunks, " i: ", i)
+            outfile=args.spooldir + '/' + args.out + str(numchunks)
+            with open(outfile, "w") as bulk_file:
+               bulk_file.write('\n'.join(pubrecords))
+            pubrecords = []
     print "generated records"
     with open(args.out, "w") as bulk_file:
       bulk_file.write('\n'.join(records))
