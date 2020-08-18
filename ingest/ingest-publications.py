@@ -12,42 +12,10 @@ import pdb   # Debugging purposes - comment out for production
 import socket
 import time
 import os
-from elasticsearch import Elasticsearch, RequestsHttpConnection
-from elasticsearch.helpers import parallel_bulk
-from collections import deque
-from requests_aws4auth import AWS4Auth
-from datetime import datetime
-import boto3
-import glob
-import json
-import os
-
-#index="fispubs-setup-news"
-index="fis"
-host = 'search-experts-pubs-unoedenr36fpm7alfpboeihcnq.us-east-2.es.amazonaws.com'
-service = 'es'
-region = 'us-east-2'
-
-credentials = boto3.Session().get_credentials()
-awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
-
-es = Elasticsearch(
-    hosts = [{'host': host, 'port': 443}],
-    http_auth = awsauth,
-    use_ssl = True,
-    verify_certs = True,
-    connection_class = RequestsHttpConnection
-)
-
-es.indices.delete(index=index, ignore=[400, 404])
 
 # import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
 # Also eventually can put more config info in here
 from vivoapipw import *
-logging.basicConfig(filename='example.log',level=logging.DEBUG)
-
-#logger = logging.getLogger('simple_example')
-#logger.setLevel(logging.DEBUG)
 
 
 g1 = Graph()
@@ -378,8 +346,6 @@ def create_publication_doc(pubgraph,publication):
 
 def process_publication(publication):
     pid = str(os.getpid())
-    idxfile = args.spooldir + '/idx-' + pid
-    fidx=open(idxfile, 'a+')
     print("Process: ", pid, "; Publication: ", publication)
     logging.info('%s Processing Publication: %s', pid, publication)
     if publication.find("pubid_") == -1:
@@ -393,15 +359,7 @@ def process_publication(publication):
         es_id = pub["pubId"] if "pubId" in pub and pub["pubId"] is not None else pub["uri"]
         logging.debug('es_id: %s', es_id)
     pubdoc = json.dumps(pub)
-#    res = es.index(index="fis-test-1", id=es_id, body=pubdoc)
-#    print(res['result'])
-
-#    record = [json.dumps(get_metadata(es_id)), json.dumps(pub)]
-#    fidx.write('\n'.join(record) + "\n")
-#    return json.dumps(pubdoc)
-#  return [json.dumps(get_metadata(es_id)), json.dumps(pub)]
     return [json.dumps(pub)]
-    fidx.close()
 
 def generate(threads):
     pool = multiprocessing.Pool(threads)
@@ -419,6 +377,9 @@ if __name__ == "__main__":
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
     args = parser.parse_args()
     sparqlendpoint=args.sparqlendpoint
+
+    logfile=args.spooldir + '/ingest-pubs.log'
+    logging.basicConfig(filename=logfile,level=logging.DEBUG)
 
     get_orgs_query = load_file("queries/listOrgs.rq")
     get_subjects_query = load_file("queries/listSubjects.rq")
@@ -452,6 +413,15 @@ if __name__ == "__main__":
             with open(outfile, "w") as bulk_file:
                bulk_file.write('\n'.join(pubrecords))
             pubrecords = []
-    print "generated records"
-    with open(args.out, "w") as bulk_file:
-      bulk_file.write('\n'.join(records))
+            bulk_file.close()
+    print "writing final file"
+    print("chunks: ", numchunks, " i: ", i)
+    outfile=args.spooldir + '/' + args.out + str(numchunks)
+    with open(outfile, "w") as bulk_file:
+        bulk_file.write('\n'.join(pubrecords))
+    bulk_file.close()
+    print "Done with chunk files, writing full file"
+    fulloutfile=args.spooldir + '/' + 'full-' + args.out
+    with open(fulloutfile, "w") as bulk_file:
+        bulk_file.write('\n'.join(records))
+    bulk_file.close()
