@@ -16,24 +16,16 @@ fi
 
 outputsize=`wc -l ${outdir}/full-allpubs.idx | awk  '{print $1}'`
 echo "$outputsize lines in ${outdir}/full-allpubs.idx"
-if [ $outputsize -lt 75000 ]
+if [ $outputsize -lt 75 ]
 then
   echo "Not enough lines in output. Amount of lines: $outputsize. File: ${outdir}/full-allpubs.idx" >>$logfile 2>&1
   cat $logfile | mailx -s "ERROR: rebuild-pubs.sh - not enough lines in json file" elsborg@colorado.edu
   exit
 fi
 
-echo "Index counts prior to run" >> $logfile
 ./idx_get_count.sh $indexname >> $logfile
-curl -XDELETE localhost:9200/${indexname} >> $logfile
-curl -XPUT localhost:9200/${indexname} >> $logfile
-curl -XPUT -H 'Content-Type: application/json' localhost:9200/${indexname}/publication/_mapping?pretty --data-binary @mappings/publication.json >> $logfile
-for f in $outdir/allpubs.idx*
-do 
-   echo $f 
-   curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/_bulk' --data-binary @$f >> $logfile 2>&1
-done
+python load-data.py --spooldir ${outdir} allpubs.idx
 
-sleep 10
+sleep 5 
 echo "Index counts after run" >> $logfile
 ./idx_get_count.sh $indexname >> $logfile 2>&1

@@ -17,7 +17,6 @@ import os
 # Also eventually can put more config info in here
 from vivoapipw import *
 
-
 g1 = Graph()
 
 # This was used to create weblinks from facetview to VIVO. 
@@ -392,6 +391,7 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
     print("EMAIL: ", EMAIL)
 
+# section to create chunked files
     chunk = 500
     numchunks = 0
     records = generate(threads=int(args.threads))
@@ -410,18 +410,20 @@ if __name__ == "__main__":
         if dochunk == 0:
             print("chunks: ", numchunks, " i: ", i)
             outfile=args.spooldir + '/' + args.out + str(numchunks)
-            with open(outfile, "w") as bulk_file:
-               bulk_file.write('\n'.join(pubrecords))
+            bulk_file=open(outfile, "w")
+            bulk_file.write('\n'.join(pubrecords))
             pubrecords = []
+            bulk_file.write('\n')
             bulk_file.close()
     print "writing final file"
     print("chunks: ", numchunks, " i: ", i)
     outfile=args.spooldir + '/' + args.out + str(numchunks)
-    with open(outfile, "w") as bulk_file:
-        bulk_file.write('\n'.join(pubrecords))
+    bulk_file=open(outfile, "w")
+    bulk_file.write('\n')
     bulk_file.close()
-    print "Done with chunk files, writing full file"
+    print "Done writing chunk files"
+
+    print "Writing full file"
     fulloutfile=args.spooldir + '/' + 'full-' + args.out
     with open(fulloutfile, "w") as bulk_file:
         bulk_file.write('\n'.join(records))
-    bulk_file.close()

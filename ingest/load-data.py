@@ -7,7 +7,14 @@ import boto3
 import glob
 import json
 import os, time
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--spooldir', default='./spool', help='where to read files from')
+parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file format eg allpubs.idx')
+args = parser.parse_args()
+
+bulkfiles=args.spooldir + '/' + args.out + '*'
 #index="fispubs-setup-news"
 index="fispubs"
 
@@ -27,18 +34,19 @@ es = Elasticsearch(
     verify_certs = True,
     connection_class = RequestsHttpConnection
 )
-doc = {
-    'author': 'kimchy2',
-    'text': 'Elasticsearch: cool. bonsai cool.',
-    'timestamp': datetime.now(), 
-         }
+# Example of a single document upload, for future
+#doc = {
+#    'author': 'kimchy2',
+#    'text': 'Elasticsearch: cool. bonsai cool.',
+#    'timestamp': datetime.now(), 
+#         }
 
-res = es.index(index="test-index", id=2, body=doc)
-print(res['result'])
+#res = es.index(index="test-index", id=2, body=doc)
+#print(res['result'])
 
 es.indices.delete(index=index, ignore=[400, 404])
 
-for f in glob.iglob('spool/pubs.idx*'):
+for f in glob.iglob(bulkfiles):
   print(f)
   with open(f) as json_file:
     json_docs=json_file.read()
