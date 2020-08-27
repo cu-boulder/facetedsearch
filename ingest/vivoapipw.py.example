@@ -1,9 +1,14 @@
 #Entries to access to vivo sparql update api
 # Copy this to vivoapipw.py and modify the entries
 # This file is used by both the bash shell scripts and the python ingest scripts
-EMAIL='my.email@yourschool.edu'
-PASSWORD='somecrazysecurepassword'
-ENDPOINT='http://yourschool.edu/vivo/api/sparqlQuery'
+EMAIL='VIVO SPARQL login. eg: my.email@yourschool.edu'
+PASSWORD='VIVO SPARQL password. eg: somecrazysecurepassword'
+ENDPOINT='VIVO SPARQL API endpoint. eg: http://yourschool.edu/vivo/api/sparqlQuery'
 PEOPLEINDEX='people'
 PUBSINDEX='pubs'
 ALTMETRIC_API_KEY='8k39sdkakl349skkjsomeotherkeycausethisaintreal'
+ESENDPOINT='some elastic endpoint'
+ESSERVICE='AWS service if using AWS Elastic - eg: es'
+ESREGION='AWS region if using AWS Elastic - eg: us-east-2'
+MINPUBSCOUNT='what is in the minimum amount of pubs you expect to not throw an error. eg: 75000'
+NOTIFYEMAIL"who to notify if errors: eg: fis-critical@colorado.edu"

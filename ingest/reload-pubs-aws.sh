@@ -1,7 +1,7 @@
 . ./vivoapipw.py
 indexname=$PUBSINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
-dstamp="20200825-164856"
+dstamp="20200827-160528"
 outdir="spool/${dstamp}"
 #mkdir $outdir
 outfile="${outdir}/reload-pubs.out"
@@ -10,7 +10,8 @@ echo "Files in $outdir"
 echo "Index counts prior to run" 
 ./idx_get_count.sh $indexname 
 
-python ./load-data.py --spooldir ${outdir}  allpubs.idx
+python ./load-data.py --spooldir ${outdir} --esendpoint ${ESENDPOINT} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${PUBSINDEX} allpubs.idx
+
 
 sleep 1
 echo "Index counts after run"
