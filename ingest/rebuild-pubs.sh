@@ -25,15 +25,29 @@ fi
 
 echo "Index counts prior to run" >> $logfile
 ./idx_get_count.sh $indexname >> $logfile
-curl -XDELETE localhost:9200/${indexname} >> $logfile
+sleep 1
+echo " " >> $logfile
+echo -e "\nDeleting Old Index: ${indexname}" >> $logfile
+curl -XDELETE localhost:9200/${indexname} >> $logfile 2>&1
+sleep 1
+echo "" >> $logfile
+echo -e "\nCreating new Index: ${indexname}" >> $logfile
 curl -XPUT localhost:9200/${indexname} >> $logfile
-curl -XPUT -H 'Content-Type: application/json' localhost:9200/${indexname}/publication/_mapping?pretty --data-binary @mappings/publication.json >> $logfile
+sleep 1
+# Don't need mapping for now
+#echo " " >> $logfile
+#echo -e "\nAdding mapping to Index: ${indexname}" >> $logfile
+#curl -XPUT -H 'Content-Type: application/json' localhost:9200/${indexname}/publication/_mapping?pretty --data-binary @mappings/publication.json >> $logfile
+#sleep 1
+echo " " >> $logfile
+echo -e "\nUploading bulk files to Index: ${indexname}" >> $logfile
 for f in $outdir/allpubs.idx*
 do 
-   echo $f 
+   echo "" >> $logfile
+   echo -e "\nLoading file: $f" >> $logfile 
    curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/_bulk' --data-binary @$f >> $logfile 2>&1
+   sleep 1
 done
-
-sleep 10
+echo "" >> $logfile
 echo "Index counts after run" >> $logfile
 ./idx_get_count.sh $indexname >> $logfile 2>&1
