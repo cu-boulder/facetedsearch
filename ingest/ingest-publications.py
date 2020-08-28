@@ -178,9 +178,7 @@ def load_file(filepath):
         return _file.read().replace('\n', " ")
 
 def describe(sparqlendpoint, query):
-    print("sparqlendpoint: ", sparqlendpoint)
-#    print("EMAIL: ", EMAIL)
-#    print("PASSWORD: ", PASSWORD)
+    logging.info('sparqlendpoint: %s',  sparqlendpoint)
     sparql = SPARQLWrapper(sparqlendpoint)
     sparql.setQuery(query)
     sparql.setMethod("POST")
@@ -189,7 +187,6 @@ def describe(sparqlendpoint, query):
     logging.debug('logging - describe query: %s', query)
     try:
         results = sparql.query().convert()
-#        print("results: ", results)
         return results
     except Exception, e:
         try:
@@ -227,18 +224,15 @@ def create_publication_doc(pubgraph,publication):
     doi = doi[0].toPython() if doi else None
     ams = 0
     if doi:
-#        print("found DOI:", doi)
         doc.update({"doi": doi})
         j = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
         try:
            j
         except NameError:
-           print ("No altmetric results for doi", doi)
+           logging.info('No altmetric results for doi %s', pubid)
         else:
-#           print("altmetric returned", doi)
+           logging.debug('altmetric returned %s', doi)
            if isinstance(j, dict):
-             #print("altmetric score", j['score'])
-             #if j['score']:
              if 'score' in j:
                ams = j['score']
                doc.update({"amscore": ams})
@@ -247,7 +241,7 @@ def create_publication_doc(pubgraph,publication):
     cuscholar = list(pub.objects(predicate=PUBS.cuscholar))
     cuscholar = cuscholar[0].toPython() if cuscholar else None
     if cuscholar:
-#        print("found cuscholar:", cuscholar)
+        logging.debug('found cuscholar: %s', cuscholar)
         doc.update({"cuscholar": cuscholar})
         doc.update({"cuscholarexists": "CU Scholar"})
 
@@ -311,7 +305,7 @@ def create_publication_doc(pubgraph,publication):
     if venue and venue.label():
         doc.update({"publishedIn": {"uri": venue.identifier, "name": venue.label().encode('utf8')}})
     elif venue:
-        print("venue missing label:", venue.identifier)
+        logging.info('venue missing label: %s', venue.identifier)
 
     authors = []
     for s, p, o in pubgraph.triples((None, VIVO.relates, None)):
@@ -322,6 +316,8 @@ def create_publication_doc(pubgraph,publication):
           obj = {"uri": a, "name": name}
           per = g1.resource(a)
 
+# Improvements - reuse the person json object, should only have to look up each person once. 
+#                reuse/query this object from the people index if possible.
           orcid = get_orcid(per)
           if orcid:
               obj.update({"orcid": orcid})
@@ -344,10 +340,7 @@ def create_publication_doc(pubgraph,publication):
 
 def process_publication(publication):
     pid = str(os.getpid())
-    logfile = args.spooldir + '/log-' + pid
-    idxfile = args.spooldir + '/idx-' + pid
-    fidx=open(idxfile, 'a+')
-    logging.info('Processing Publication: %s', publication)
+    logging.info('%s Processing Publication: %s', pid, publication)
     if publication.find("pubid_") == -1:
        logging.info('INVALID PUBLICATION: %s', publication) 
        return []
@@ -358,16 +351,15 @@ def process_publication(publication):
         pub = create_publication_doc(pubgraph=pubgraph, publication=publication)
         es_id = pub["pubId"] if "pubId" in pub and pub["pubId"] is not None else pub["uri"]
         logging.debug('es_id: %s', es_id)
-    record = [json.dumps(get_metadata(es_id)), json.dumps(pub)]
-    fidx.write('\n'.join(record) + "\n")
-    return [json.dumps(get_metadata(es_id)), json.dumps(pub)]
-    fidx.close()
+    pubdoc = json.dumps(pub)
+    return [json.dumps(pub)]
 
 def generate(threads):
     pool = multiprocessing.Pool(threads)
     params = [pub for pub in g1.subjects(RDF.type, BIBO.Document)]
-    print("params: ", params)
-    return list(chain.from_iterable(pool.map(process_publication, params)))
+    logging.info('params: %s', params)
+    plist = list(chain.from_iterable(pool.map(process_publication, params)))
+    return plist
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -375,9 +367,13 @@ if __name__ == "__main__":
     parser.add_argument('--sparqlendpoint', default='http://localtomcathost:8780/vivo/api/sparqlQuery', help='local tomcat host and port for VIVO sparql query API endpoint')
     parser.add_argument('--spooldir', default='./spool', help='where to write files')
     parser.add_argument('--index', default='fis-pubs-setup', help='name of index, needs to correlate with javascript library')
+    parser.add_argument('--chunk', default=4000, help='Number of records in each file, used for AWS uploads')
     parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file')
     args = parser.parse_args()
     sparqlendpoint=args.sparqlendpoint
+
+    logfile=args.spooldir + '/ingest-pubs.log'
+    logging.basicConfig(filename=logfile,level=logging.INFO)
 
     get_orgs_query = load_file("queries/listOrgs.rq")
     get_subjects_query = load_file("queries/listSubjects.rq")
@@ -388,9 +384,41 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_subjects_query)
     g1 = g1 + describe(sparqlendpoint,get_author_query)
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
-    print("EMAIL: ", EMAIL)
 
+# section to create chunked files
+    chunk = args.chunk
+    numchunks = 0
     records = generate(threads=int(args.threads))
-    print "generated records"
-    with open(args.out, "w") as bulk_file:
-      bulk_file.write('\n'.join(records))
+    rlen=len(records)
+    pubrecords = []
+    pubdoc={}
+    for i in range(rlen):
+        pubdata=json.loads(records[i])
+        pubmetadata=get_metadata(pubdata["pubId"])
+        #pubdoc.update({"pubmetadata:": pubmetadata})
+        #pubdoc.update({"pubdata:": pubdata})
+        pubrecords.append(json.dumps(pubmetadata))
+        pubrecords.append(json.dumps(pubdata))
+        numchunks += 1
+        dochunk = numchunks % chunk
+        if dochunk == 0:
+            print("chunks: ", numchunks, " i: ", i)
+            outfile=args.spooldir + '/' + args.out + str(numchunks)
+            bulk_file=open(outfile, "w")
+            bulk_file.write('\n'.join(pubrecords))
+            pubrecords = []
+            bulk_file.write('\n')
+            bulk_file.close()
+    print "writing final file"
+    print("chunks: ", numchunks, " i: ", i)
+    outfile=args.spooldir + '/' + args.out + str(numchunks)
+    bulk_file=open(outfile, "w")
+    bulk_file.write('\n'.join(pubrecords))
+    bulk_file.write('\n')
+    bulk_file.close()
+    print "Done writing chunk files"
+
+    print "Writing full file"
+    fulloutfile=args.spooldir + '/' + 'full-' + args.out
+    with open(fulloutfile, "w") as bulk_file:
+        bulk_file.write('\n'.join(records))
