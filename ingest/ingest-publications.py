@@ -170,7 +170,7 @@ def get_organizations(person):
             .flatmap(lambda r: r.subjects(VIVO.relatedBy)) \
             .filter(lambda o: has_type(o, FOAF.Organization)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": o.identifier, "name": o.label()}).one().value
+            .map(lambda o: {"uri": o.identifier, "name": o.label(), "id": o.identifier.split('_')[1]}).one().value
 
         if organization:
             organizations.append(organization)
@@ -358,7 +358,6 @@ def create_publication_doc(pubgraph,publication):
     doc.update({"authors": authors})
 
     logging.debug('Publication doc: %s', doc)
-    #DEBUGS #pdb.set_trace()
     return doc
 
 def process_publication(publication):
@@ -396,7 +395,7 @@ if __name__ == "__main__":
     sparqlendpoint=args.sparqlendpoint
 
     logfile=args.spooldir + '/ingest-pubs.log'
-    logging.basicConfig(filename=logfile,level=logging.DEBUG)
+    logging.basicConfig(filename=logfile,level=logging.INFO)
 
     get_orgs_query = load_file("queries/listOrgs.rq")
     get_subjects_query = load_file("queries/listSubjects.rq")
