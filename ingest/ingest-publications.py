@@ -135,7 +135,6 @@ def get_email(person):
         .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
         .flatmap(lambda v: v.objects(VCARD.hasEmail)) \
         .flatmap(lambda e: e.objects(VCARD.email)) \
-        .filter(non_empty_str) \
         .one().value
 
 
