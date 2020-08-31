@@ -14,36 +14,31 @@ PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 PREFIX obo: <http://purl.obolibrary.org/obo/>
 PREFIX cub: <https://experts.colorado.edu/ontology/vivo-fis#>
 
-
-
-#
-# This example query gets 20 geographic locations
-# and (if available) their labels
-#
 construct
 {
 ?person a foaf:Person;
         rdfs:label ?label;
-        obo:ARG_2000028 ?vcard;
-        cub:fisId ?fisid;
         vivo:orcidId ?orcid;
-        vivo:hasResearchArea ?subject;
+        vivo:hasResearchArea ?subject; 
         vivo:researchAreaOf ?person;
+        cub:fisId ?fisid;
+        obo:ARG_2000028 ?vcard;
         vivo:relatedBy ?position .
+?vcard vcard:hasEmail ?email .
+?email vcard:email ?emailurl .
 ?position rdf:type vivo:Position .
-?dept vivo:relatedBy ?position
+?dept vivo:relatedBy ?position 
 }
 WHERE {
     ?person a foaf:Person;
-            rdfs:label ?label;
-            cub:fisId ?fisid;
-            obo:ARG_2000028 ?vcard;
-            vivo:relatedBy ?position .
+       rdfs:label ?label;
+       cub:fisId ?fisid;
+       obo:ARG_2000028 ?vcard;
+       vivo:relatedBy ?position .
     ?position rdf:type vivo:Position .
     ?dept vivo:relatedBy ?position .
-    OPTIONAL { ?vcard vcard:hasEmail ?email }
-    OPTIONAL { ?vcard vcard:hasURL ?url }
     OPTIONAL { ?person vivo:orcidId ?orcid }
     OPTIONAL { ?person vivo:hasResearchArea ?subject }
+    OPTIONAL { ?vcard vcard:hasEmail ?email }
+    OPTIONAL { ?email vcard:email ?emailurl }
 }
-

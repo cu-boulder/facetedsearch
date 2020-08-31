@@ -328,7 +328,9 @@ def create_publication_doc(pubgraph,publication):
           gx += g1.triples((a, None, None))
           name = (gx.label(a))
           obj = {"uri": a, "name": name}
+          logging.debug('Getting person for: %s', name)
           per = g1.resource(a)
+          logging.debug('Person is: %s', per)
 
 # Improvements - reuse the person json object, should only have to look up each person once. 
 #                reuse/query this object from the people index if possible.
@@ -340,7 +342,7 @@ def create_publication_doc(pubgraph,publication):
           if email:
              obj.update({"email": email})
 
-          logging.debug('check fisid: %s', person)
+          logging.debug('check fisid: %s', per)
           fis = get_fisid(per)
           obj.update({"fisId": fis})
 
@@ -395,16 +397,20 @@ if __name__ == "__main__":
     sparqlendpoint=args.sparqlendpoint
 
     logfile=args.spooldir + '/ingest-pubs.log'
-    logging.basicConfig(filename=logfile,level=logging.INFO)
+    logging.basicConfig(filename=logfile,level=logging.DEBUG)
 
     get_orgs_query = load_file("queries/listOrgs.rq")
     get_subjects_query = load_file("queries/listSubjects.rq")
     get_author_query = load_file("queries/listAuthors.rq")
     get_pub_query = load_file("queries/listPubs.rq")
 
-    g1 += describe(sparqlendpoint,get_orgs_query)
-    g1 = g1 + describe(sparqlendpoint,get_subjects_query)
+    logging.info('Sparql Query for authors')
     g1 = g1 + describe(sparqlendpoint,get_author_query)
+    logging.info('Sparql Query for orgs')
+    g1 += describe(sparqlendpoint,get_orgs_query)
+    logging.info('Sparql Query for subjects')
+    g1 = g1 + describe(sparqlendpoint,get_subjects_query)
+    logging.info('Sparql Query for publications')
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
 
 # section to create chunked files
