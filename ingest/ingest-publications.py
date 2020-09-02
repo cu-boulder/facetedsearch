@@ -130,11 +130,24 @@ def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
     else:
         return None
 
+def get_email(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
+        .flatmap(lambda v: v.objects(VCARD.hasEmail)) \
+        .flatmap(lambda e: e.objects(VCARD.email)) \
+        .one().value
+
+
 def get_orcid(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(VIVO.orcidId)) \
         .map(lambda o: o.identifier) \
         .map(lambda o: o[o.rfind('/') + 1:]).one().value
+
+def get_fisid(person):
+    return Maybe.of(person).stream() \
+        .flatmap(lambda p: p.objects(FIS_LOCAL.fisId)) \
+        .one().value
 
 
 def get_research_areas(person):
@@ -157,7 +170,7 @@ def get_organizations(person):
             .flatmap(lambda r: r.subjects(VIVO.relatedBy)) \
             .filter(lambda o: has_type(o, FOAF.Organization)) \
             .filter(has_label) \
-            .map(lambda o: {"uri": o.identifier, "name": o.label()}).one().value
+            .map(lambda o: {"uri": o.identifier, "name": o.label(), "id": o.identifier.split('_')[1]}).one().value
 
         if organization:
             organizations.append(organization)
@@ -314,13 +327,23 @@ def create_publication_doc(pubgraph,publication):
           gx += g1.triples((a, None, None))
           name = (gx.label(a))
           obj = {"uri": a, "name": name}
+          logging.debug('Getting person for: %s', name)
           per = g1.resource(a)
+          logging.debug('Person is: %s', per)
 
 # Improvements - reuse the person json object, should only have to look up each person once. 
 #                reuse/query this object from the people index if possible.
           orcid = get_orcid(per)
           if orcid:
               obj.update({"orcid": orcid})
+
+          email = get_email(per)
+          if email:
+             obj.update({"email": email})
+
+          logging.debug('check fisid: %s', per)
+          fis = get_fisid(per)
+          obj.update({"fisId": fis})
 
           organizations = get_organizations(per)
           if organizations:
@@ -335,7 +358,6 @@ def create_publication_doc(pubgraph,publication):
     doc.update({"authors": authors})
 
     logging.debug('Publication doc: %s', doc)
-    #DEBUGS #pdb.set_trace()
     return doc
 
 def process_publication(publication):
@@ -380,9 +402,13 @@ if __name__ == "__main__":
     get_author_query = load_file("queries/listAuthors.rq")
     get_pub_query = load_file("queries/listPubs.rq")
 
-    g1 += describe(sparqlendpoint,get_orgs_query)
-    g1 = g1 + describe(sparqlendpoint,get_subjects_query)
+    logging.info('Sparql Query for authors')
     g1 = g1 + describe(sparqlendpoint,get_author_query)
+    logging.info('Sparql Query for orgs')
+    g1 += describe(sparqlendpoint,get_orgs_query)
+    logging.info('Sparql Query for subjects')
+    g1 = g1 + describe(sparqlendpoint,get_subjects_query)
+    logging.info('Sparql Query for publications')
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
 
 # section to create chunked files

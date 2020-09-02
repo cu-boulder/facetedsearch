@@ -10,6 +10,9 @@ PREFIX vitro-public: <http://vitro.mannlib.cornell.edu/ns/vitro/public#>
 PREFIX vivo: <http://vivoweb.org/ontology/core#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX bibo: <http://purl.org/ontology/bibo/>
+PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX cub: <https://experts.colorado.edu/ontology/vivo-fis#>
 
 construct
 {
@@ -18,16 +21,24 @@ construct
         vivo:orcidId ?orcid;
         vivo:hasResearchArea ?subject; 
         vivo:researchAreaOf ?person;
+        cub:fisId ?fisid;
+        obo:ARG_2000028 ?vcard;
         vivo:relatedBy ?position .
+?vcard vcard:hasEmail ?email .
+?email vcard:email ?emailurl .
 ?position rdf:type vivo:Position .
 ?dept vivo:relatedBy ?position 
 }
 WHERE {
     ?person a foaf:Person;
-    rdfs:label ?label;
-    vivo:relatedBy ?position .
+       rdfs:label ?label;
+       cub:fisId ?fisid;
+       obo:ARG_2000028 ?vcard;
+       vivo:relatedBy ?position .
     ?position rdf:type vivo:Position .
     ?dept vivo:relatedBy ?position .
     OPTIONAL { ?person vivo:orcidId ?orcid }
     OPTIONAL { ?person vivo:hasResearchArea ?subject }
+    OPTIONAL { ?vcard vcard:hasEmail ?email }
+    OPTIONAL { ?email vcard:email ?emailurl }
 }
