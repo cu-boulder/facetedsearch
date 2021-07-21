@@ -127,6 +127,7 @@ def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
               return None
         except:
            logging.exception("Altmetric connection failure")
+           return None
     else:
         return None
 
