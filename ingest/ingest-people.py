@@ -494,7 +494,7 @@ def create_person_doc(person, endpoint):
 
     logging.debug('check fisid: %s', person)
     fis = get_fisid(per)
-    doc = {"uri": person, "name": name, "fisId": fis}
+    doc = {"uri": person.replace(PRODURL, TARGETURL), "name": name, "fisId": fis}
 
     logging.debug('check orcid: %s', person)
     orcid = get_orcid(per)
@@ -540,6 +540,7 @@ def create_person_doc(person, endpoint):
     thumbnail = get_thumbnail(per)
     if thumbnail:
         thumbnail = thumbnail.replace("http://", "https://")
+        thumbnail = thumbnail.replace(PRODURL, TARGETURL)
         doc.update({"thumbnail": thumbnail})
 
     affiliations = get_affiliations(per)
