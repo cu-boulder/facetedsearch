@@ -77,7 +77,12 @@ def load_file(filepath):
     with open(filepath) as _file:
         return _file.read().replace('\n', " ")
 
-
+# test and set PRODURL and TARGETURL
+try:
+  PRODURL
+except NameError:
+  PRODURL="experts.colorado.edu"
+  TARGETURL="experts.colorado.edu"
 SYSTEM_NAME = socket.gethostname()
 if '-dev' in SYSTEM_NAME:
    BASE_URL = 'https://vivo-cub-dev.colorado.edu/individual'
