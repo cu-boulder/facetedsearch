@@ -12,3 +12,6 @@ ESSERVICE='AWS service if using AWS Elastic - eg: es'
 ESREGION='AWS region if using AWS Elastic - eg: us-east-2'
 MINPUBSCOUNT='what is in the minimum amount of pubs you expect to not throw an error. eg: 75000'
 NOTIFYEMAIL"who to notify if errors: eg: fis-critical@colorado.edu"
+# The next two variables are used to swap URLS for the thumbnail and image in the people index so facetview can render the objects ot the correct URL
+PRODURL="experts.colorado.edu"
+TARGETURL="vivo-cub-dev.colorado.edu"
