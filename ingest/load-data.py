@@ -52,8 +52,11 @@ es = Elasticsearch(
 es.indices.delete(index=index, ignore=[400, 404])
 
 for f in glob.iglob(bulkfiles):
-  print(f)
+  print("File: ",f)
   with open(f) as json_file:
     json_docs=json_file.read()
-    es.bulk(json_docs)
+    print("About to load: ", f)
+    es.bulk(json_docs, request_timeout=30)
+    print("finished loading: ", f)
     time.sleep(5)
+    print("finished sleeping")

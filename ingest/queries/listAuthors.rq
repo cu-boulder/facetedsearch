@@ -27,6 +27,7 @@ construct
 ?vcard vcard:hasEmail ?email .
 ?email vcard:email ?emailurl .
 ?position rdf:type vivo:Position .
+?position rdfs:label ?positionlabel .
 ?dept vivo:relatedBy ?position 
 }
 WHERE {
@@ -36,6 +37,7 @@ WHERE {
        obo:ARG_2000028 ?vcard;
        vivo:relatedBy ?position .
     ?position rdf:type vivo:Position .
+    ?position rdfs:label ?positionlabel .
     ?dept vivo:relatedBy ?position .
     OPTIONAL { ?person vivo:orcidId ?orcid }
     OPTIONAL { ?person vivo:hasResearchArea ?subject }
