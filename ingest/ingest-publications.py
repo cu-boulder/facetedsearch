@@ -40,6 +40,8 @@ FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 FIS = Namespace("https://experts.colorado.edu/individual")
 NET_ID = Namespace("http://vivo.mydomain.edu/ns#")
 PUBS = Namespace("https://experts.colorado.edu/ontology/pubs#")
+EVENT = Namespace("http://purl.org/NET/c4dm/event.owl#")
+
 
 # standard filters
 non_empty_str = lambda s: True if s else False
@@ -239,17 +241,17 @@ def create_publication_doc(pubgraph,publication):
     ams = 0
     if doi:
         doc.update({"doi": doi})
-        j = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
-        try:
-           j
-        except NameError:
-           logging.info('No altmetric results for doi %s', pubid)
-        else:
-           logging.debug('altmetric returned %s', doi)
-           if isinstance(j, dict):
-             if 'score' in j:
-               ams = j['score']
-               doc.update({"amscore": ams})
+#DRE        j = get_altmetric_for_doi(ALTMETRIC_API_KEY, doi)
+#DRE        try:
+#DRE           j
+#DRE        except NameError:
+#DRE           logging.info('No altmetric results for doi %s', pubid)
+#DRE        else:
+#DRE           logging.debug('altmetric returned %s', doi)
+#DRE           if isinstance(j, dict):
+#DRE             if 'score' in j:
+#DRE               ams = j['score']
+#DRE               doc.update({"amscore": ams})
              #DRE - for news -- doc.update({"altmetric": j})
 
     cuscholar = list(pub.objects(predicate=PUBS.cuscholar))
@@ -289,6 +291,74 @@ def create_publication_doc(pubgraph,publication):
     if volume:
         doc.update({"volume": volume})
 
+    number = list(pub.objects(predicate=BIBO.number))
+    volume = number[0].encode('utf-8') if number else None
+    if number:
+        doc.update({"articleNumber": number})
+
+    isbn10 = list(pub.objects(predicate=BIBO.isbn10))
+    isbn10 = isbn10[0].encode('utf-8') if isbn10 else None
+    if isbn10:
+        doc.update({"isbn10": isbn10})
+
+    isbn13 = list(pub.objects(predicate=BIBO.isbn13))
+    isbn13 = isbn13[0].encode('utf-8') if isbn13 else None
+    if isbn13:
+        doc.update({"isbn13": isbn13})
+
+    eissn = list(pub.objects(predicate=BIBO.eissn))
+    eissn = eissn[0].encode('utf-8') if eissn else None
+    if eissn:
+        doc.update({"eissn": eissn})
+
+    issn = list(pub.objects(predicate=BIBO.issn))
+    issn = issn[0].encode('utf-8') if issn else None
+    if issn:
+        doc.update({"issn": issn})
+
+    pageStart = list(pub.objects(predicate=BIBO.pageStart))
+    pageStart = pageStart[0].encode('utf-8') if pageStart else None
+    if pageStart:
+        doc.update({"pageStart": pageStart})
+
+    pageEnd = list(pub.objects(predicate=BIBO.pageEnd))
+    pageEnd = pageEnd[0].encode('utf-8') if pageEnd else None
+    if pageEnd:
+        doc.update({"pageEnd": pageEnd})
+
+    dataSource = list(pub.objects(predicate=PUBS.dataSource))
+    dataSource = dataSource[0].encode('utf-8') if dataSource else None
+    if dataSource:
+        doc.update({"dataSource": dataSource})
+
+    dateInCube = list(pub.objects(predicate=PUBS.dateInCube))
+    dateInCube = dateInCube[0].encode('utf-8') if dateInCube else None
+    if dateInCube:
+        doc.update({"dateInCube": dateInCube})
+
+    authorCount = list(pub.objects(predicate=PUBS.authorCount))
+    authorCount = authorCount[0].encode('utf-8') if authorCount else None
+    if authorCount:
+        doc.update({"authorCount": authorCount})
+
+    citationCount = list(pub.objects(predicate=PUBS.citationCount))
+    citationCount = citationCount[0].encode('utf-8') if citationCount else None
+    if citationCount:
+        doc.update({"citationCount": citationCount})
+
+    fundingAcknowledgement = list(pub.objects(predicate=PUBS.fundingAcknowledgement))
+    fundingAcknowledgement = fundingAcknowledgement[0].encode('utf-8') if fundingAcknowledgement else None
+    if fundingAcknowledgement:
+        doc.update({"fundingAcknowledgement": fundingAcknowledgement})
+
+    conference = list(pub.objects(BIBO.presentedAt))
+    conference = conference[0] if conference else None
+    if conference and conference.label():
+        doc.update({"presentedAt": {"uri": conference.identifier, "name": conference.label().encode('utf8')}})
+    elif conference:
+        logging.info('conference missing label: %s', conference.identifier)
+
+
     citedAuthors = list(pub.objects(predicate=PUBS.citedAuthors))
     citedAuthors = citedAuthors[0].encode('utf-8') if citedAuthors else None
     if citedAuthors:
@@ -320,7 +390,7 @@ def create_publication_doc(pubgraph,publication):
         doc.update({"publishedIn": {"uri": venue.identifier, "name": venue.label().encode('utf8')}})
     elif venue:
         logging.info('venue missing label: %s', venue.identifier)
-
+	
     authors = []
     for s, p, o in pubgraph.triples((None, VIVO.relates, None)):
        for a, b, c in g1.triples((o, RDF.type, FOAF.Person)):
