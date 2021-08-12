@@ -326,10 +326,10 @@ def create_publication_doc(pubgraph,publication):
     if pageEnd:
         doc.update({"pageEnd": pageEnd})
 
-    dataSource = list(pub.objects(predicate=PUBS.dataSource))
-    dataSource = dataSource[0].encode('utf-8') if dataSource else None
-    if dataSource:
-        doc.update({"dataSource": dataSource})
+#DRE    dataSource = list(pub.objects(predicate=PUBS.dataSource))
+#DRE    dataSource = dataSource[0].encode('utf-8') if dataSource else None
+#DRE    if dataSource:
+#DRE        doc.update({"dataSource": dataSource})
 
     dateInCube = list(pub.objects(predicate=PUBS.dateInCube))
     dateInCube = dateInCube[0].encode('utf-8') if dateInCube else None
@@ -346,10 +346,10 @@ def create_publication_doc(pubgraph,publication):
     if citationCount:
         doc.update({"citationCount": citationCount})
 
-    fundingAcknowledgement = list(pub.objects(predicate=PUBS.fundingAcknowledgement))
-    fundingAcknowledgement = fundingAcknowledgement[0].encode('utf-8') if fundingAcknowledgement else None
-    if fundingAcknowledgement:
-        doc.update({"fundingAcknowledgement": fundingAcknowledgement})
+#DRE    fundingAcknowledgement = list(pub.objects(predicate=PUBS.fundingAcknowledgement))
+#DRE    fundingAcknowledgement = fundingAcknowledgement[0].encode('utf-8') if fundingAcknowledgement else None
+#DRE    if fundingAcknowledgement:
+#DRE        doc.update({"fundingAcknowledgement": fundingAcknowledgement})
 
     conference = list(pub.objects(BIBO.presentedAt))
     conference = conference[0] if conference else None
