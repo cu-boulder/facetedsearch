@@ -30,11 +30,24 @@ CONSTRUCT
     ?publication vivo:hasPublicationVenue ?venue .
     ?venue rdfs:label ?venueLabel .
     ?publication bibo:pageEnd ?pageend .
-     ?publication bibo:pageStart ?pagestart .
-     ?publication bibo:issue ?issue .
-     ?publication bibo:numPages ?numpages .
-     ?publication bibo:volume ?volume .
-     ?publication pubs:citedAuthors ?authors .
+    ?publication bibo:pageStart ?pagestart .
+    ?publication bibo:issue ?issue .
+    ?publication bibo:numPages ?numpages .
+    ?publication bibo:volume ?volume .
+    ?publication pubs:citedAuthors ?authors .
+    ?publication bibo:isbn13 ?isbn13 .
+    ?publication bibo:isbn10 ?isbn10 .
+    ?publication bibo:issn ?issn .
+    ?publication bibo:eissn ?eissn .
+    ?publication bibo:number ?articlenumber .
+    ?publication pubs:dataSource ?datasource .
+    ?publication pubs:authorCount ?authorcount .
+    ?publication pubs:citationCount ?citationcount .
+    ?publication pubs:dateInCube ?dateincube .
+    ?publication pubs:fundingAcknowledgement ?fundingacknowledgement .
+    ?publication bibo:presentedAt ?conference .
+    ?conference rdf:type bibo:Conference .
+    ?conference rdfs:label ?nameofconference .
 }
 WHERE
 {
@@ -60,5 +73,19 @@ WHERE
    OPTIONAL { ?publication vivo:hasPublicationVenue ?venue .
               ?venue rdfs:label ?venueLabel
             }
+ OPTIONAL { ?publication bibo:isbn13 ?isbn13 }
+ OPTIONAL { ?publication bibo:isbn10 ?isbn10 }
+ OPTIONAL { ?publication bibo:number ?articlenumber }
+ OPTIONAL { ?publication bibo:issn ?issn }
+ OPTIONAL { ?publication bibo:eissn ?eissn }
+ OPTIONAL { ?publication pubs:dataSource ?datasource }
+ OPTIONAL { ?publication pubs:authorCount ?authorcount }
+ OPTIONAL { ?publication pubs:citationCount ?citationcount }
+ OPTIONAL { ?publication pubs:dateInCube ?dateincube }
+ OPTIONAL { ?publication pubs:fundingAcknowledgement ?fundingacknowledgement }
+ OPTIONAL { ?publication bibo:presentedAt ?conference .
+            ?conference rdf:type bibo:Conference .
+            ?conference rdfs:label ?nameofconference .
+ }
 }
 
