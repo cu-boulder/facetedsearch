@@ -13,13 +13,11 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--spooldir', default='./spool', help='where to read files from')
-parser.add_argument('--esendpoint', default='search-experts-direct-cz3fpq4rlxcbn5z27vzq4mpzaa.us-east-2.es.amazonaws.com', help='AWS Elasticsearch enddpoint')
+parser.add_argument('--esendpoint', default='search-experts-pubs-unoedenr36fpm7alfpboeihcnq.us-east-2.es.amazonaws.com', help='AWS Elasticsearch enddpoint')
 parser.add_argument('--esservice', default='es', help='AWS Elastic enddpoint service')
-parser.add_argument('--esuser', default='', help='AWS Elastic master user')
-parser.add_argument('--espass', default='', help='AWS Elastic master password')
 parser.add_argument('--esregion', default='us-east-2', help='AWS Elasticsearch enddpoint region')
 parser.add_argument('--index', default='fispubs', help='Elasticsearch index name')
-parser.add_argument('--out', default='allpubs.idx', metavar='OUT', help='elasticsearch bulk ingest file format eg allpubs.idx')
+parser.add_argument('out', metavar='OUT', help='elasticsearch bulk ingest file format eg allpubs.idx')
 args = parser.parse_args()
 
 bulkfiles=args.spooldir + '/' + args.out + '*'
@@ -27,18 +25,15 @@ index=args.index
 host = args.esendpoint
 service = args.esservice
 region = args.esregion
-user = args.esuser
-password = args.espass
 
 #Setup AWS Elastic Authentication. 
 # The credential needs to be placed in the .aws directory under the home directory of the user running this. Similar to .ssh
 
 credentials = boto3.Session().get_credentials()
 awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
-
 es = Elasticsearch(
     hosts = [{'host': host, 'port': 443}],
-    http_auth = (user,password),
+    http_auth = awsauth,
     use_ssl = True,
     verify_certs = True,
     connection_class = RequestsHttpConnection
@@ -54,7 +49,7 @@ es = Elasticsearch(
 #print(res['result'])
 
 
-#es.indices.delete(index=index, ignore=[400, 404])
+es.indices.delete(index=index, ignore=[400, 404])
 
 for f in glob.iglob(bulkfiles):
   print("File: ",f)
