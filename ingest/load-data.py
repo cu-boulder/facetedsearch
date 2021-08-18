@@ -54,7 +54,7 @@ es = Elasticsearch(
 #print(res['result'])
 
 
-#es.indices.delete(index=index, ignore=[400, 404])
+es.indices.delete(index=index, ignore=[400, 404])
 
 for f in glob.iglob(bulkfiles):
   print("File: ",f)
