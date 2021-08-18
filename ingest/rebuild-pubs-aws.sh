@@ -7,7 +7,7 @@ logfile="${outdir}/rebuild-pubs.out"
 echo "CREATING ES DOCUMENTS"  > $logfile
 echo "Starttime: $dstamp" >> $logfile
 echo $MINPUBSCOUNT >> $logfile
-python ./ingest-publications.py --index ${PUBSINDEX} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} allpubs.idx   >> $logfile 2>&1
+python ./ingest-publications-aws.py --index ${PUBSINDEX} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} allpubs.idx   >> $logfile 2>&1
 EXITCODE=$?
 if [ $EXITCODE -ne 0 ]
 then
@@ -27,7 +27,7 @@ then
 fi
 
 ./idx_get_count.sh $indexname >> $logfile
-python load-data.py --spooldir ${outdir} --esendpoint ${ESENDPOINT} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${PUBSINDEX} allpubs.idx >> $logfile 2>&1
+python load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${PUBSINDEX} allpubs.idx >> $logfile 2>&1
 
 sleep 5 
 echo "load-data.py finished: `date +%Y%m%d-%H%M%S`" >> $logfile 2>&1
