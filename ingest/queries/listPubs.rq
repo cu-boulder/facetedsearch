@@ -10,6 +10,8 @@ PREFIX vitro-public: <http://vitro.mannlib.cornell.edu/ns/vitro/public#>
 PREFIX vivo: <http://vivoweb.org/ontology/core#>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX bibo: <http://purl.org/ontology/bibo/>
+PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+PREFIX obo: <http://purl.obolibrary.org/obo/>
 PREFIX pubs: <https://experts.colorado.edu/ontology/pubs#>
 
 CONSTRUCT
@@ -48,6 +50,16 @@ CONSTRUCT
     ?publication bibo:presentedAt ?conference .
     ?conference rdf:type bibo:Conference .
     ?conference rdfs:label ?nameofconference .
+    ?publication <http://purl.obolibrary.org/obo/ARG_2000028> ?vcard .
+    ?vcard <http://purl.obolibrary.org/obo/ARG_2000029> ?publication .
+    ?vcard vcard:hasURL ?vcard_url_bestoacu .
+    ?vcard_url_bestoacu vcard:url ?bestoacuurl .
+    ?vcard_url_bestoacu rdf:type vcard:URL .
+    ?vcard_url_bestoacu rdfs:label "CU Scholar Open Access" .
+    ?vcard vcard:hasURL ?vcard_url_bestoa .
+    ?vcard_url_bestoa vcard:url ?bestoaurl .
+    ?vcard_url_bestoa rdf:type vcard:URL .
+    ?vcard_url_bestoa rdfs:label "Best Open Access" .
 }
 WHERE
 {
@@ -86,6 +98,18 @@ WHERE
  OPTIONAL { ?publication bibo:presentedAt ?conference .
             ?conference rdf:type bibo:Conference .
             ?conference rdfs:label ?nameofconference .
+ }
+ OPTIONAL { ?publication obo:ARG_2000028 ?vcard .
+    ?vcard vcard:hasURL ?vcard_url_bestoa .
+    ?vcard_url_bestoa vcard:url ?bestoaurl .
+    ?vcard_url_bestoa rdf:type vcard:URL .
+    ?vcard_url_bestoa rdfs:label "Best Open Access" .
+ }
+ OPTIONAL { ?publication obo:ARG_2000028 ?vcard .
+   ?vcard vcard:hasURL ?vcard_url_bestoacu .
+   ?vcard_url_bestoacu vcard:url ?bestoacuurl .
+   ?vcard_url_bestoacu rdf:type vcard:URL .
+   ?vcard_url_bestoacu rdfs:label "CU Scholar Open Access" .
  }
 }
 
