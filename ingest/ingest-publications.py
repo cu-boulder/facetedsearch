@@ -159,6 +159,34 @@ def get_research_areas(person):
         .filter(has_label) \
         .map(lambda r: {"uri": r.identifier, "name": r.label()}).list()
 
+def get_website(pub):
+    weblinks = []
+
+    websites = Maybe.of(pub).stream() \
+        .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
+        .flatmap(lambda v: v.objects(VCARD.hasURL)) \
+        .filter(lambda o: has_type(o,VCARD.URL)).list()
+
+    for website in websites:
+        print("website", website )
+
+        webname = Maybe.of(website).stream() \
+           .filter(has_label) \
+           .map(lambda t: str(t.label())) \
+           .filter(non_empty_str) \
+           .one().value[0]
+        print("webname", webname)
+
+        weburl = Maybe.of(website).stream() \
+           .flatmap(lambda e: e.objects(VCARD.url)) \
+           .map(lambda r: r.value) \
+           .one().value
+        print("weburl", weburl)
+
+        if weburl:
+           weblinks.append({"name": webname, "uri": weburl})
+
+    return weblinks
 
 def get_organizations(person):
 
@@ -260,6 +288,12 @@ def create_publication_doc(pubgraph,publication):
         logging.debug('found cuscholar: %s', cuscholar)
         doc.update({"cuscholar": cuscholar})
         doc.update({"cuscholarexists": "CU Scholar"})
+
+    website = get_website(pub)
+    if website:
+        doc.update({"OpenAccess": "Yes"})
+        doc.update({"website": website})
+
 
     abstract = list(pub.objects(predicate=BIBO.abstract))
     abstract = abstract[0].encode('utf-8') if abstract else None
