@@ -27,7 +27,7 @@ then
 fi
 
 ./idx_get_count.sh $indexname >> $logfile
-python load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${PUBSINDEX} allpubs.idx >> $logfile 2>&1
+python load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${PUBSINDEX} --out allpubs.idx >> $logfile 2>&1
 
 sleep 5 
 echo "load-data.py finished: `date +%Y%m%d-%H%M%S`" >> $logfile 2>&1

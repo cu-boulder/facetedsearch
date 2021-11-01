@@ -54,7 +54,10 @@ es = Elasticsearch(
 #print(res['result'])
 
 
+print("load-data: deleting index: ",index)
 es.indices.delete(index=index, ignore=[400, 404])
+
+print("looking for files matching pattern: ",bulkfiles)
 
 for f in glob.iglob(bulkfiles):
   print("File: ",f)
