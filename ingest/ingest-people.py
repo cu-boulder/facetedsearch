@@ -655,8 +655,9 @@ if __name__ == "__main__":
     sparqlendpoint=args.sparql
 
     # Read csv file of fisid-emplid fiscrosswalk mapping
+    # if no file, count on a code failure which shows file not found
     logging.info('Reading fiscrosswalk csv')
-    crosswalkcsvdf=pd.read_csv('fiscrosswalk.csv')
+    crosswalkcsvdf=pd.read_csv('spool/ingestfiles/fiscrosswalk.csv')
 
     # generate bulk import document for publications
     records = generate(threads=int(args.threads), sparql=args.sparql)
