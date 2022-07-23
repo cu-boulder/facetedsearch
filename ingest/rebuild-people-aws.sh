@@ -8,7 +8,7 @@ logfile="spool/${dstamp}/rebuild-index.out"
 outputfile="fispeople.idx"
 fullpathoutputfile="spool/${dstamp}/${outputfile}"
 echo "CREATING ES DOCUMENTS" # > $logfile
-python ./ingest-people.py --index ${indexname} --sparql ${ENDPOINT} --thread=8 $fullpathoutputfile   >> $logfile 2>&1
+python3 ./ingest-people.py --index ${indexname} --sparql ${ENDPOINT} --thread=8 $fullpathoutputfile   >> $logfile 2>&1
 EXITCODE=$?
 if [ $EXITCODE -ne 0 ]
 then
@@ -27,7 +27,7 @@ then
 fi
 
 #DRE ./idx_get_count.sh ${indexname} >> $logfile
-python load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${indexname} --out $outputfile >> $logfile 2>&1
+python3 load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${indexname} --out $outputfile >> $logfile 2>&1
 sleep 5
 echo "load-data.py finished: `date +%Y%m%d-%H%M%S`" >> $logfile 2>&1
 echo "Index counts after run" >> $logfile

@@ -14,6 +14,7 @@ import pdb   # Debugging purposes - comment out for production
 import socket
 import codecs
 import time
+import pandas as pd
 
 # import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
 # Also eventually can put more config info in here
@@ -74,7 +75,7 @@ class Maybe:
 
 
 def load_file(filepath):
-    with open(filepath) as _file:
+    with open(filepath, mode='rt') as _file:
         return _file.read().replace('\n', " ")
 
 # test and set PRODURL and TARGETURL
@@ -137,7 +138,7 @@ def select(endpoint, query):
         results = sparql.query().convert()
         print("results: ", results)
         return results["results"]["bindings"]
-    except Exception, e:
+    except Exception as e:
         try:
             print("Error trying sparql.query in select function. Will try again in 2 seconds")
             #print("Will try again after 1st exception: %s\n" % e)
@@ -145,7 +146,7 @@ def select(endpoint, query):
             results = sparql.query().convert()
             print("results: ", results)
             return results["results"]["bindings"]
-        except Exception, x:
+        except Exception as x:
             print("2nd try Error trying sparql.query in select function.")
             print("Second try failed: %s\n" % x)
             sys.exit(1)
@@ -167,7 +168,7 @@ def describe(endpoint, query):
     #    print ("Describe passed: ", query)
         return results
     #except RuntimeWarning:
-    except Exception, e:
+    except Exception as e:
         try:
             print("Error trying sparql.query in describe function.")
             print("Will try again after 1st exception: %s\n" % e)
@@ -175,9 +176,9 @@ def describe(endpoint, query):
             results = sparql.query().convert()
             print("results: ", results)
             return results
-        except Exception, f:
+        except Exception as f:
             print("Error trying sparql.query in describe function.")
-            print "Couldn't do it a second time: %s\n" % f
+            print("Couldn't do it a second time: %s\n" % f)
             sys.exit(1)
             pass
         except RuntimeWarning:
@@ -340,7 +341,7 @@ def get_home_country(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(VIVO.geographicFocus)) \
         .filter(has_label) \
-        .map(lambda r: {"uri": BASE_URL + '?uri=' + urllib.quote_plus(str(r.identifier)), "name": str(r.label().encode('utf-8'))}).list()
+        .map(lambda r: {"uri": BASE_URL + '?uri=' + urllib.parse.quote(str(r.identifier)), "name": str(r.label().encode('utf-8'))}).list()
 
 def get_affiliations(person):
     affiliations = []
@@ -501,6 +502,15 @@ def create_person_doc(person, endpoint):
     fis = get_fisid(per)
     doc = {"uri": person.replace(PRODURL, TARGETURL), "name": name, "fisId": fis}
 
+# Add emplid's from fiscrosswalk csv file
+
+    logging.info('Processing fiscrosswalk CSV for fisid: %s', fis)
+    empldf=crosswalkcsvdf.loc[crosswalkcsvdf['FIS_ID'] == int(fis)]
+    if not empldf.empty:
+       logging.debug('CSV found for fisid: %s', str(fis))
+       doc.update({"emplid": empldf['EMPLID'].item()})
+
+
     logging.debug('check orcid: %s', person)
     orcid = get_orcid(per)
     if orcid:
@@ -569,6 +579,7 @@ def create_person_doc(person, endpoint):
 
 
 def process_person(person):
+    person=person.decode('utf-8')
     logging.info('Processing Person: %s', person)
     if person.find("fisid_") == -1:
        logging.info('INVALID PERSON: %s', person) 
@@ -595,31 +606,31 @@ def publish(bulk, endpoint, rebuild, mapping):
     # push current publication document mapping
 
     mapping_url = endpoint + "fis/person/_mapping"
-    print "opening mapping"
+    print("opening mapping")
     with open(mapping) as mapping_file:
         r = requests.put(mapping_url, data=mapping_file, verify=False)
-        print "putting map file"
+        print("putting map file")
         if r.status_code != requests.codes.ok:
-            print r.status_code, r.content
+            print(r.status_code, r.content)
 
             # new mapping may be incompatible with previous
             # delete current mapping and re-push
             requests.delete(mapping_url, verify=False)
-            print "failed. deleting..."
+            print("failed. deleting...")
             r = requests.put(mapping_url, data=mapping_file, verify=False)
-            print "re-putting map file"
+            print("re-putting map file")
             if r.status_code != requests.codes.ok:
                 print(r.url, r.status_code)
                 r.raise_for_status()
 
-    print "mapped"
+    print("mapped")
     # bulk import new publication documents
     bulk_import_url = endpoint + "_bulk"
     r = requests.post(bulk_import_url, data=bulk, verify=False)
     if r.status_code != requests.codes.ok:
         print(r.url, r.status_code)
         r.raise_for_status()
-    print "Bulk Status: %s" % r.status_code
+    print("Bulk Status: %s" % r.status_code)
 
 def generate(threads, sparql):
     pool = multiprocessing.Pool(threads)
@@ -643,11 +654,16 @@ if __name__ == "__main__":
     args = parser.parse_args()
     sparqlendpoint=args.sparql
 
+    # Read csv file of fisid-emplid fiscrosswalk mapping
+    # if no file, count on a code failure which shows file not found
+    logging.info('Reading fiscrosswalk csv')
+    crosswalkcsvdf=pd.read_csv('spool/ingestfiles/fiscrosswalk.csv')
+
     # generate bulk import document for publications
     records = generate(threads=int(args.threads), sparql=args.sparql)
     #records = open(args.out, "r").read().split('\n')
     #print records
-    print "generated records"
+    print("generated records")
     # save generated bulk import file so it can be backed up or reviewed if there are publish errors
     with open(args.out, "w") as bulk_file:
         bulk_file.write('\n'.join(records))
