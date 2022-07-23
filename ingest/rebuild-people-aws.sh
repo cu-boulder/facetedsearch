@@ -27,7 +27,7 @@ then
 fi
 
 #DRE ./idx_get_count.sh ${indexname} >> $logfile
-python3 load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${indexname} --out $outputfile >> $logfile 2>&1
+python load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${indexname} --out $outputfile >> $logfile 2>&1
 sleep 5
 echo "load-data.py finished: `date +%Y%m%d-%H%M%S`" >> $logfile 2>&1
 echo "Index counts after run" >> $logfile
