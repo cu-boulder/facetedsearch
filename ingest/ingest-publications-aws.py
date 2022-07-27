@@ -417,6 +417,11 @@ def create_publication_doc(pubgraph,publication):
     if authorCount:
         doc.update({"authorCount": authorCount})
 
+    oastatus = list(pub.objects(predicate=OBO.ERO_0000045))
+    oastatus = oastatus[0].encode('utf-8') if oastatus else None
+    if oastatus:
+        doc.update({"oastatus": oastatus})
+
     citationCount = list(pub.objects(predicate=PUBS.citationCount))
     citationCount = citationCount[0].encode('utf-8') if citationCount else None
     if citationCount:
