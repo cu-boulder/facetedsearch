@@ -48,6 +48,7 @@ CONSTRUCT
     ?publication pubs:dateInCube ?dateincube .
     ?publication pubs:fundingAcknowledgement ?fundingacknowledgement .
     ?publication bibo:presentedAt ?conference .
+    ?publication obo:ERO_0000045 ?oastatus .
     ?conference rdf:type bibo:Conference .
     ?conference rdfs:label ?nameofconference .
     ?publication <http://purl.obolibrary.org/obo/ARG_2000028> ?vcard .
@@ -95,6 +96,7 @@ WHERE
  OPTIONAL { ?publication pubs:citationCount ?citationcount }
  OPTIONAL { ?publication pubs:dateInCube ?dateincube }
  OPTIONAL { ?publication pubs:fundingAcknowledgement ?fundingacknowledgement }
+ OPTIONAL { ?publication obo:ERO_0000045 ?oastatus }
  OPTIONAL { ?publication bibo:presentedAt ?conference .
             ?conference rdf:type bibo:Conference .
             ?conference rdfs:label ?nameofconference .

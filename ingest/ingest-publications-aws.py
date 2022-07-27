@@ -133,6 +133,39 @@ def get_altmetric_for_doi(ALTMETRIC_API_KEY, doi):
     else:
         return None
 
+
+def get_unpaywall_for_doi(doi):
+    if doi:
+        query = ('http://api.unpaywall.org/v2/' + doi + '?email=elsborg@colorado.edu')
+        try:
+           r = requests.get(query)
+           if r.status_code == 200:
+             try:
+
+                json = r.json()
+#                return json['score']
+                return json
+             except ValueError:
+                logging.exception("Could not parse Unpaywall response. ")
+                return None
+             except ValueError:
+                logging.exception("Could not parse Unpaywall response. ")
+                return None
+           elif r.status_code == 420:
+              logging.info("Unpaywall Rate limit in effect!!!!")
+              time.sleep(5)
+           elif r.status_code == 403:
+              logging.warn("Unpaywall says you aren't authorized for this call.")
+              return None
+           else:
+              logging.debug("No Unpaywall record or API error. ")
+              return None
+        except:
+           logging.exception("Unpaywall connection failure")
+    else:
+        return None
+
+
 def get_email(person):
     return Maybe.of(person).stream() \
         .flatmap(lambda p: p.objects(OBO.ARG_2000028)) \
@@ -282,6 +315,16 @@ def create_publication_doc(pubgraph,publication):
                doc.update({"amscore": ams})
              #DRE - for news -- doc.update({"altmetric": j})
 
+        j = get_unpaywall_for_doi(doi)
+        try:
+           j
+        except NameError:
+           logging.info('No unpaywall results for doi %s', pubid)
+        else:
+           logging.debug('unpaywall returned %s', doi)
+           if isinstance(j, dict):
+             doc.update({"unpaywall": j})
+
     cuscholar = list(pub.objects(predicate=PUBS.cuscholar))
     cuscholar = cuscholar[0].toPython() if cuscholar else None
     if cuscholar:
@@ -373,6 +416,11 @@ def create_publication_doc(pubgraph,publication):
     authorCount = authorCount[0].encode('utf-8') if authorCount else None
     if authorCount:
         doc.update({"authorCount": authorCount})
+
+    oastatus = list(pub.objects(predicate=OBO.ERO_0000045))
+    oastatus = oastatus[0].encode('utf-8') if oastatus else None
+    if oastatus:
+        doc.update({"oastatus": oastatus})
 
     citationCount = list(pub.objects(predicate=PUBS.citationCount))
     citationCount = citationCount[0].encode('utf-8') if citationCount else None
