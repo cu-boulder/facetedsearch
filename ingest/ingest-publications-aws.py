@@ -265,7 +265,7 @@ def describe(sparqlendpoint, query):
     try:
         results = sparql.query().convert()
         return results
-    except Exception, e:
+    except Exception as e:
         try:
             print("Error trying sparql.query in describe function.")
             print("Will try again after 1st exception: %s\n" % e)
@@ -273,9 +273,9 @@ def describe(sparqlendpoint, query):
             results = sparql.query().convert()
             print("results: ", results)
             return results
-        except Exception, f:
+        except Exception as f:
             print("Error trying sparql.query in describe function.")
-            print "Couldn't do it a second time: %s\n" % f
+            print("Couldn't do it a second time: %s\n" % f)
             sys.exit(1)
         except RuntimeWarning:
             sys.exit(1)
@@ -338,110 +338,110 @@ def create_publication_doc(pubgraph,publication):
         doc.update({"website": website})
 
     abstract = list(pub.objects(predicate=BIBO.abstract))
-    abstract = abstract[0].encode('utf-8') if abstract else None
+    abstract = abstract[0] if abstract else None
     if abstract:
         doc.update({"abstract": abstract})
 
     pageEnd = list(pub.objects(predicate=BIBO.pageEnd))
-    pageEnd = pageEnd[0].encode('utf-8') if pageEnd else None
+    pageEnd = pageEnd[0] if pageEnd else None
     if pageEnd:
         doc.update({"pageEnd": pageEnd})
 
     pageStart = list(pub.objects(predicate=BIBO.pageStart))
-    pageStart = pageStart[0].encode('utf-8') if pageStart else None
+    pageStart = pageStart[0] if pageStart else None
     if pageStart:
         doc.update({"pageStart": pageStart})
 
     issue = list(pub.objects(predicate=BIBO.issue))
-    issue = issue[0].encode('utf-8') if issue else None
+    issue = issue[0] if issue else None
     if issue:
         doc.update({"issue": issue})
 
     numPages = list(pub.objects(predicate=BIBO.numPages))
-    numPages = numPages[0].encode('utf-8') if numPages else None
+    numPages = numPages[0] if numPages else None
     if numPages:
         doc.update({"numPages": numPages})
 
     volume = list(pub.objects(predicate=BIBO.volume))
-    volume = volume[0].encode('utf-8') if volume else None
+    volume = volume[0] if volume else None
     if volume:
         doc.update({"volume": volume})
 
     number = list(pub.objects(predicate=BIBO.number))
-    volume = number[0].encode('utf-8') if number else None
+    volume = number[0] if number else None
     if number:
         doc.update({"articleNumber": number})
 
     isbn10 = list(pub.objects(predicate=BIBO.isbn10))
-    isbn10 = isbn10[0].encode('utf-8') if isbn10 else None
+    isbn10 = isbn10[0] if isbn10 else None
     if isbn10:
         doc.update({"isbn10": isbn10})
 
     isbn13 = list(pub.objects(predicate=BIBO.isbn13))
-    isbn13 = isbn13[0].encode('utf-8') if isbn13 else None
+    isbn13 = isbn13[0] if isbn13 else None
     if isbn13:
         doc.update({"isbn13": isbn13})
 
     eissn = list(pub.objects(predicate=BIBO.eissn))
-    eissn = eissn[0].encode('utf-8') if eissn else None
+    eissn = eissn[0] if eissn else None
     if eissn:
         doc.update({"eissn": eissn})
 
     issn = list(pub.objects(predicate=BIBO.issn))
-    issn = issn[0].encode('utf-8') if issn else None
+    issn = issn[0] if issn else None
     if issn:
         doc.update({"issn": issn})
 
     pageStart = list(pub.objects(predicate=BIBO.pageStart))
-    pageStart = pageStart[0].encode('utf-8') if pageStart else None
+    pageStart = pageStart[0] if pageStart else None
     if pageStart:
         doc.update({"pageStart": pageStart})
 
     pageEnd = list(pub.objects(predicate=BIBO.pageEnd))
-    pageEnd = pageEnd[0].encode('utf-8') if pageEnd else None
+    pageEnd = pageEnd[0] if pageEnd else None
     if pageEnd:
         doc.update({"pageEnd": pageEnd})
 
     dataSource = list(pub.objects(predicate=PUBS.dataSource))
-    dataSource = dataSource[0].encode('utf-8') if dataSource else None
+    dataSource = dataSource[0] if dataSource else None
     if dataSource:
         doc.update({"dataSource": dataSource})
 
     dateInCube = list(pub.objects(predicate=PUBS.dateInCube))
-    dateInCube = dateInCube[0].encode('utf-8') if dateInCube else None
+    dateInCube = dateInCube[0] if dateInCube else None
     if dateInCube:
         doc.update({"dateInCube": dateInCube})
 
     authorCount = list(pub.objects(predicate=PUBS.authorCount))
-    authorCount = authorCount[0].encode('utf-8') if authorCount else None
+    authorCount = authorCount[0] if authorCount else None
     if authorCount:
         doc.update({"authorCount": authorCount})
 
     oastatus = list(pub.objects(predicate=OBO.ERO_0000045))
-    oastatus = oastatus[0].encode('utf-8') if oastatus else None
+    oastatus = oastatus[0] if oastatus else None
     if oastatus:
         doc.update({"oastatus": oastatus})
 
     citationCount = list(pub.objects(predicate=PUBS.citationCount))
-    citationCount = citationCount[0].encode('utf-8') if citationCount else None
+    citationCount = citationCount[0] if citationCount else None
     if citationCount:
         doc.update({"citationCount": citationCount})
 
     fundingAcknowledgement = list(pub.objects(predicate=PUBS.fundingAcknowledgement))
-    fundingAcknowledgement = fundingAcknowledgement[0].encode('utf-8') if fundingAcknowledgement else None
+    fundingAcknowledgement = fundingAcknowledgement[0] if fundingAcknowledgement else None
     if fundingAcknowledgement:
         doc.update({"fundingAcknowledgement": fundingAcknowledgement})
 
     conference = list(pub.objects(BIBO.presentedAt))
     conference = conference[0] if conference else None
     if conference and conference.label():
-        doc.update({"presentedAt": {"uri": conference.identifier, "name": conference.label().encode('utf8')}})
+        doc.update({"presentedAt": {"uri": conference.identifier, "name": conference.label()}})
     elif conference:
         logging.info('conference missing label: %s', conference.identifier)
 
 
     citedAuthors = list(pub.objects(predicate=PUBS.citedAuthors))
-    citedAuthors = citedAuthors[0].encode('utf-8') if citedAuthors else None
+    citedAuthors = citedAuthors[0] if citedAuthors else None
     if citedAuthors:
         doc.update({"citedAuthors": citedAuthors})
 
@@ -468,7 +468,7 @@ def create_publication_doc(pubgraph,publication):
     venue = list(pub.objects(VIVO.hasPublicationVenue))
     venue = venue[0] if venue else None
     if venue and venue.label():
-        doc.update({"publishedIn": {"uri": venue.identifier, "name": venue.label().encode('utf8')}})
+        doc.update({"publishedIn": {"uri": venue.identifier, "name": venue.label()}})
     elif venue:
         logging.info('venue missing label: %s', venue.identifier)
 	
@@ -587,16 +587,16 @@ if __name__ == "__main__":
             pubrecords = []
             bulk_file.write('\n')
             bulk_file.close()
-    print "writing final file"
+    print("writing final file")
     print("chunks: ", numchunks, " i: ", i)
     outfile=args.spooldir + '/' + args.out + str(numchunks)
     bulk_file=open(outfile, "w")
     bulk_file.write('\n'.join(pubrecords))
     bulk_file.write('\n')
     bulk_file.close()
-    print "Done writing chunk files"
+    print("Done writing chunk files")
 
-    print "Writing full file"
+    print("Writing full file")
     fulloutfile=args.spooldir + '/' + 'full-' + args.out
     with open(fulloutfile, "w") as bulk_file:
         bulk_file.write('\n'.join(records))
