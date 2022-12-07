@@ -1,7 +1,8 @@
+. /data/vivo/virtual_environments/python3/bin/activate
 . ./vivoapipw.py
 indexname=$PUBSINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
-dstamp="20210817-141552"
+dstamp="20220926-083827"
 outdir="spool/${dstamp}"
 #mkdir $outdir
 outfile="${outdir}/reload-pubs.out"

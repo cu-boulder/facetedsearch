@@ -6,7 +6,7 @@ mkdir spool/$dstamp
 logfile="spool/${dstamp}/rebuild-index.out"
 outputfile="spool/${dstamp}/people.list"
 echo "CREATING ES DOCUMENTS" # > $logfile
-python ./ingest-people.py --index ${indexname} --sparql ${ENDPOINT} --thread=8 $outputfile   >> $logfile 2>&1
+python3 ./ingest-people.py --index ${indexname} --sparql ${ENDPOINT} --thread=8 $outputfile   >> $logfile 2>&1
 EXITCODE=$?
 if [ $EXITCODE -ne 0 ]
 then

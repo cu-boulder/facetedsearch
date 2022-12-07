@@ -1,4 +1,6 @@
-# get counts of index prior to deletion
+# Activate the python3 virtual env with all of the installed pip dependencies
+. /data/vivo/virtual_environments/python3/bin/activate
+# Load environment variables
 . ./vivoapipw.py
 dstamp=`date +%Y%m%d-%H%M%S`
 outdir="spool/${dstamp}"
@@ -8,7 +10,7 @@ logfile="spool/${dstamp}/rebuild-index.out"
 outputfile="fispeople.idx"
 fullpathoutputfile="spool/${dstamp}/${outputfile}"
 echo "CREATING ES DOCUMENTS" # > $logfile
-python3 ./ingest-people.py --index ${indexname} --sparql ${ENDPOINT} --thread=8 $fullpathoutputfile   >> $logfile 2>&1
+python ./ingest-people.py --index ${indexname} --sparql ${ENDPOINT} --thread=12 $fullpathoutputfile   >> $logfile 2>&1
 EXITCODE=$?
 if [ $EXITCODE -ne 0 ]
 then

@@ -1,3 +1,4 @@
+. /data/vivo/virtual_environments/python3/bin/activate
 . ./vivoapipw.py
 indexname=$PUBSOAEXTORGINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
@@ -7,7 +8,7 @@ logfile="${outdir}/rebuild-pubs.out"
 echo "CREATING ES DOCUMENTS"  > $logfile
 echo "Starttime: $dstamp" >> $logfile
 echo $MINPUBSCOUNT >> $logfile
-python3 ./ingest-publications-oa-extorgs.py --index ${indexname} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} allpubs.idx  # >> $logfile 2>&1
+python ./ingest-publications-oa-extorgs.py --index ${indexname} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} allpubs.idx  # >> $logfile 2>&1
 EXITCODE=$?
 if [ $EXITCODE -ne 0 ]
 then
