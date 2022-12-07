@@ -1,6 +1,6 @@
 # get counts of index prior to deletion
 . ./vivoapipw.py
-dstamp=20190423-144848
+dstamp=20220817-020001
 indexname=$PEOPLEINDEX
 #mkdir spool/$dstamp
 outfile="spool/${dstamp}/rebuild-index.out"

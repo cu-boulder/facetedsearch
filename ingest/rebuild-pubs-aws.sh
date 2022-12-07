@@ -1,3 +1,4 @@
+. /data/vivo/virtual_environments/python3/bin/activate
 . ./vivoapipw.py
 indexname=$PUBSINDEX
 dstamp=`date +%Y%m%d-%H%M%S`
@@ -7,7 +8,7 @@ logfile="${outdir}/rebuild-pubs.out"
 echo "CREATING ES DOCUMENTS"  > $logfile
 echo "Starttime: $dstamp" >> $logfile
 echo $MINPUBSCOUNT >> $logfile
-python3 ./ingest-publications-aws.py --index ${PUBSINDEX} --sparql ${ENDPOINT} --threads 10 --spooldir ${outdir} allpubs.idx   >> $logfile 2>&1
+python ./ingest-publications-aws.py --index ${PUBSINDEX} --sparql ${ENDPOINT} --threads 16 --spooldir ${outdir} allpubs.idx   >> $logfile 2>&1
 EXITCODE=$?
 if [ $EXITCODE -ne 0 ]
 then
@@ -27,7 +28,7 @@ then
 fi
 
 ./idx_get_count.sh $indexname >> $logfile
-python3 load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${PUBSINDEX} --out allpubs.idx >> $logfile 2>&1
+python load-data.py --spooldir ${outdir} --esendpoint ${PRODESENDPOINT} --esuser ${ESUSER} --espass ${ESPASS} --esservice ${ESSERVICE} --esregion ${ESREGION} --index ${PUBSINDEX} --out allpubs.idx >> $logfile 2>&1
 
 sleep 5 
 echo "load-data.py finished: `date +%Y%m%d-%H%M%S`" >> $logfile 2>&1

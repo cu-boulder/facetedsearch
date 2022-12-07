@@ -29,7 +29,7 @@ construct {
 }
 WHERE {
   ?person a foaf:Person .
-  OPTIONAL { ?person vivo:relatedBy ?awardrecipt .
+   ?person vivo:relatedBy ?awardrecipt .
     ?awardrecipt vivo:relates ?person .
              ?awardrecipt a vivo:AwardReceipt .
              ?awardrecipt vivo:relates ?award .
@@ -38,8 +38,8 @@ WHERE {
             ?awardrecipt vivo:dateTimeValue ?dtv .
             ?dtv rdf:type vivo:DateTimeValue .
            ?dtv vivo:dateTime ?dt .
-           ?award vivo:assignedBy ?org .
+    OPTIONAL {
+           ?awardrecipt vivo:assignedBy ?org .
            ?org rdfs:label ?orgName
-    
            }
 }
