@@ -201,20 +201,20 @@ def get_website(pub):
         .filter(lambda o: has_type(o,VCARD.URL)).list()
 
     for website in websites:
-        print("website", website )
+        logging.debug('pid: %s ; publication: %s ; website: %s', str(os.getpid()), pub, website)
 
         webname = Maybe.of(website).stream() \
            .filter(has_label) \
            .map(lambda t: str(t.label())) \
            .filter(non_empty_str) \
-           .one().value[0]
-        print("webname", webname)
+           .one().value
+        logging.debug('pid: %s ; publication: %s ; webname: %s', str(os.getpid()), pub, webname)
 
         weburl = Maybe.of(website).stream() \
            .flatmap(lambda e: e.objects(VCARD.url)) \
            .map(lambda r: r.value) \
            .one().value
-        print("weburl", weburl)
+        logging.debug('pid: %s ; publication: %s ; weburl: %s', str(os.getpid()), pub, weburl)
 
         if weburl:
            weblinks.append({"name": webname, "uri": weburl})
@@ -284,17 +284,18 @@ def describe(sparqlendpoint, query):
 
 def create_publication_doc(pubgraph,publication):
 
+    pid = str(os.getpid())
     pub = g1.resource(publication)
 
     try:
         title = pubgraph.label(publication,"default title")
-        logging.info('title: %s', title)
+        logging.info('%s: create_publication_doc - title: %s', pid, title)
     except AttributeError:
         print("missing title:", publication)
         return {}
 
     pubId = publication[publication.rfind('/pubid_') + 7:]
-    logging.info('pubid: %s', pubId)
+    logging.info('%s: create_publication_doc - pubid: %s', pid, pubId)
     doc = {"uri": publication, "name": title, "pubId": pubId}
 
     doi = list(pub.objects(predicate=BIBO.doi))
@@ -547,7 +548,7 @@ if __name__ == "__main__":
     sparqlendpoint=args.sparqlendpoint
 
     logfile=args.spooldir + '/ingest-pubs.log'
-    logging.basicConfig(filename=logfile,level=logging.INFO)
+    logging.basicConfig(filename=logfile,level=logging.DEBUG)
 
     get_orgs_query = load_file("queries/listOrgs.rq")
     get_subjects_query = load_file("queries/listSubjects.rq")
