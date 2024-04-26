@@ -12,6 +12,8 @@ import pdb   # Debugging purposes - comment out for production
 import socket
 import time
 import os
+import csv
+import pandas as pd
 
 # import EMAIL and PASSWORD variables for VIVO sparqlquery API, this is a link to a file for github purposes
 # Also eventually can put more config info in here
@@ -314,7 +316,7 @@ def create_publication_doc(pubgraph,publication):
              if 'score' in j:
                ams = j['score']
                doc.update({"amscore": ams})
-             #DRE - for news -- doc.update({"altmetric": j})
+               doc.update({"altmetric": j})
 
         j = get_unpaywall_for_doi(doi)
         try:
@@ -510,6 +512,20 @@ def create_publication_doc(pubgraph,publication):
 
     doc.update({"authors": authors})
 
+
+# Add cube funding info for publications
+    logging.info('Processing grants CSV for pubId: %s', pubId)
+    pubgrantdf=grantcsvdf.loc[grantcsvdf['PUBLICATION_ID'] == int(pubId)]
+    if not pubgrantdf.empty: 
+       logging.debug('Grant found for pubId: %s', str(pubId))
+       pubgrants=[]
+       pubgrantjson = json.loads(pubgrantdf[['FUNDER_NAME','GRANT_ID']].to_json(orient="index"))
+       for key in pubgrantjson:
+          pubgrants.append(pubgrantjson[key])
+       if pubgrants:
+          doc.update({"pubGrants": pubgrants})
+# End funding for publications
+
     logging.debug('Publication doc: %s', doc)
     return doc
 
@@ -563,6 +579,10 @@ if __name__ == "__main__":
     g1 = g1 + describe(sparqlendpoint,get_subjects_query)
     logging.info('Sparql Query for publications')
     g1 = g1 + describe(sparqlendpoint,get_pub_query)
+
+# Read csv file of publication funding 
+    logging.info('Reading publication-funding  csv')
+    grantcsvdf=pd.read_csv('/data/vivo/dat-files/cub-new-data/publication-funding.dat', sep = '|')
 
 # section to create chunked files
     chunk = args.chunk
